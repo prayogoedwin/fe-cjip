@@ -1,0 +1,138 @@
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
+import { PageHero } from '@/components/ui/PageHero'
+import { Container } from '@/components/ui/Container'
+import { SearchBox } from '@/components/ui/SearchBox'
+import { Pagination } from '@/components/ui/Pagination'
+import { CtaBanner } from '@/components/layout/CtaBanner'
+import { createPageMetadata } from '@/lib/page-metadata'
+import { mockBerita, popularTags } from '@/lib/mock-data'
+
+export const metadata: Metadata = createPageMetadata(
+  'Berita',
+  'Ikuti perkembangan terkini seputar investasi dan pembangunan Jawa Tengah',
+)
+
+export default function BeritaPage() {
+  const featured = mockBerita[0]
+  const list = mockBerita.slice(1)
+
+  return (
+    <>
+      <PageHero
+        label="Informasi"
+        title="Berita"
+        description="Ikuti perkembangan terkini seputar investasi dan pembangunan Jawa Tengah"
+        breadcrumbs={[{ label: 'Beranda', href: '/' }, { label: 'Berita' }]}
+      />
+
+      <section className="px-6 py-12">
+        <Container>
+          <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+            <div>
+              <SearchBox placeholder="Cari berita..." className="mb-8" />
+
+              <article className="mb-8 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm md:grid md:grid-cols-2">
+                <div className="relative h-56 md:h-auto">
+                  <Image
+                    src={featured.thumbnail}
+                    alt={featured.judul}
+                    fill
+                    className="object-cover"
+                    sizes="50vw"
+                    priority
+                  />
+                </div>
+                <div className="p-6">
+                  <p className="mb-2 text-xs text-neutral-500">{featured.tanggal}</p>
+                  <h2 className="mb-3 text-xl font-bold text-brand-900">{featured.judul}</h2>
+                  <p className="mb-4 text-sm leading-relaxed text-neutral-600">{featured.excerpt}</p>
+                  <Link href="#" className="text-sm font-medium text-brand-500">
+                    Baca Selengkapnya →
+                  </Link>
+                </div>
+              </article>
+
+              <div className="space-y-5">
+                {list.map((item) => (
+                  <article
+                    key={item.id}
+                    className="flex gap-4 overflow-hidden rounded-xl border border-brand-100 bg-white p-3 shadow-sm"
+                  >
+                    <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg">
+                      <Image
+                        src={item.thumbnail}
+                        alt={item.judul}
+                        fill
+                        className="object-cover"
+                        sizes="128px"
+                      />
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-neutral-500">{item.tanggal}</p>
+                      <h4 className="mb-1 line-clamp-2 font-semibold text-brand-900">{item.judul}</h4>
+                      <p className="mb-2 line-clamp-2 text-sm text-neutral-600">{item.excerpt}</p>
+                      <Link href="#" className="text-sm font-medium text-brand-500">
+                        Baca Selengkapnya →
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <Pagination totalPages={14} resultText="Showing 1 to 7 of 68 results" />
+            </div>
+
+            <aside className="space-y-6">
+              <div className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
+                <h3 className="mb-4 font-semibold text-brand-900">Berita Populer</h3>
+                <ul className="space-y-3">
+                  {mockBerita.slice(0, 4).map((item) => (
+                    <li key={item.id}>
+                      <Link href="#" className="text-sm text-neutral-700 transition duration-300 hover:text-brand-500">
+                        {item.judul}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
+                <h3 className="mb-4 font-semibold text-brand-900">Topik</h3>
+                <div className="flex flex-wrap gap-2">
+                  {popularTags.map((tag) => (
+                    <Link
+                      key={tag}
+                      href="#"
+                      className="rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-700 transition duration-300 hover:bg-brand-100"
+                    >
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-gradient-to-br from-brand-900 to-brand-500 p-5 text-white">
+                <h3 className="mb-2 font-semibold">Butuh Bantuan?</h3>
+                <p className="mb-4 text-sm text-white/80">
+                  Hubungi tim DPMPTSP Jawa Tengah untuk konsultasi investasi.
+                </p>
+                <a
+                  href="https://wa.me/628112949326"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-900"
+                >
+                  Hubungi Kami
+                </a>
+              </div>
+            </aside>
+          </div>
+        </Container>
+      </section>
+
+      <CtaBanner />
+    </>
+  )
+}
