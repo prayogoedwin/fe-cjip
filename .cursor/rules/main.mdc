@@ -1,0 +1,409 @@
+---
+alwaysApply: true
+---
+# CJIP Frontend Rules
+
+## Stack
+- Next.js 14+ App Router (src/ directory)
+- TypeScript strict mode
+- Tailwind CSS v3
+- Tidak ada library UI eksternal kecuali diminta
+
+## Brand Colors
+- Primary: `brand-500` = #1A6324 (hijau)
+- Dark: `brand-900` = #0A2E0F
+- Accent: `amber-500` = #F59E0B
+- Background: `brand-50` = #F8F9F7
+
+## Aturan Komponen
+- Default: Server Component (tanpa 'use client')
+- Tambah `'use client'` HANYA jika butuh: useState, useEffect, onClick handler, atau Chart.js
+- Semua komponen di `src/components/`, dikelompokkan per domain:
+  - `src/components/layout/` → Navbar, Footer
+  - `src/components/home/` → section-section homepage
+  - `src/components/ui/` → komponen reusable kecil
+  - `src/components/seo/` → JsonLd, metadata helpers
+- Gunakan named export untuk semua komponen
+
+## Aturan Styling
+- Pakai Tailwind utility class, BUKAN inline style
+- Mobile-first: `sm:` `md:` `lg:` `xl:`
+- Gunakan warna dari kelas `brand-*` dan `amber-*`
+- Animasi pakai `transition`, `duration-300`, bukan custom CSS
+
+## Aturan TypeScript
+- Semua props wajib punya interface/type
+- Shared types di `src/types/index.ts`
+- Gunakan `async/await`, bukan `.then()` chain
+
+## Aturan Import
+- Selalu gunakan alias `@/` bukan `../../`
+- Contoh: `import Navbar from '@/components/layout/Navbar'`
+
+## Data & API
+- Fetch data di Server Component, bukan useEffect
+- Sementara belum ada BE: gunakan mock data dari `src/lib/mock-data.ts`
+- Pisahkan logic fetch ke `src/services/`
+
+## Security Rules
+
+### Environment Variables
+- JANGAN pernah hardcode credential, API key, token, password di kode
+- Semua secret WAJIB di `.env.local`, BUKAN `.env` biasa
+- Variabel yang boleh ke client hanya yang prefix `NEXT_PUBLIC_`
+- Variabel tanpa `NEXT_PUBLIC_` = server only, jangan pernah di-pass ke props client component
+- `.env.local` WAJIB ada di `.gitignore` — jangan pernah di-commit
+
+```bash
+# Contoh benar
+NEXT_PUBLIC_API_URL=https://api.cjip.jatengprov.go.id
+API_SECRET_KEY=xxx        # server only, tidak boleh ke client
+DATABASE_URL=xxx          # server only
+```
+
+### API & Data Fetching
+- Semua request ke BE wajib pakai HTTPS, bukan HTTP
+- Jangan expose endpoint internal di client component
+- Logic fetch ke BE taruh di `src/services/`, bukan langsung di komponen
+- Selalu validasi response dari API sebelum dirender
+- Jangan tampilkan raw error message dari server ke UI user
+
+### Input & Form
+- Semua input user WAJIB di-sanitize sebelum dikirim ke API
+- Jangan gunakan `dangerouslySetInnerHTML` kecuali untuk JSON-LD di `JsonLd.tsx`
+- Jika terpaksa pakai `dangerouslySetInnerHTML`, pastikan kontennya bukan dari input user
+
+### Auth & Session
+- Token/session JANGAN disimpan di `localStorage` — gunakan httpOnly cookie
+- Halaman yang butuh auth WAJIB diproteksi di `middleware.ts`, bukan hanya di komponen
+- Jangan taruh logika auth check di client component
+
+### Dependency
+- Jangan install package sembarangan tanpa review
+- Cek package sebelum install: aktif di-maintain, bukan package mencurigakan
+- Hindari package yang minta permission berlebihan
+
+### Output & Logging
+- Jangan `console.log` data sensitif (token, password, data user)
+- Hapus semua `console.log` debugging sebelum push ke GitHub
+- Error handling jangan expose stack trace ke response API
+
+### Next.js Specific
+- Gunakan `next/headers` untuk baca cookie di server, bukan document.cookie
+- Route handler (`route.ts`) yang butuh auth wajib validasi session di awal
+- Gunakan `server-only` package untuk file yang benar-benar hanya boleh jalan di server
+
+```ts
+// src/services/api.ts
+import 'server-only' // proteksi agar tidak bisa di-import di client
+```
+
+## SEO — Wajib di setiap halaman
+- Setiap `page.tsx` WAJIB export `metadata` atau `generateMetadata()`
+- Gunakan Next.js Metadata API, bukan `<Head>` manual
+- Setiap halaman hanya boleh ada SATU tag `<h1>`
+- Heading hierarchy urut: h1 → h2 → h3, tidak boleh loncat
+- Semua `<Image>` dari next/image WAJIB ada props `alt` deskriptif
+- Gunakan `<Link>` dari next/link untuk internal link, bukan `<a>`
+- Gambar hero wajib pakai props `priority`
+- Font pakai `next/font/google`, bukan CDN Google Fonts
+- Structured data (JSON-LD) pakai komponen dari `src/components/seo/JsonLd.tsx`
+
+## Referensi Desain
+- Template HTML ada di folder `../cjip-tamplate/` (jangan diedit)
+- 15 halaman: index, berita, kawasan-industri, kepeminatan,
+  lahan-siap-pakai, lapor-mikro, login, panduan-investasi,
+  peluang-investasi, peta-investasi, product-all,
+  profil-jateng, sektor, sidikerjo
+- Struktur & layout ikut template, tambahkan interaktivitas React
+
+## Konvensi Penamaan
+- Komponen: PascalCase → `HeroSection.tsx`
+- Route folder: kebab-case → `kawasan-industri/`
+- Utility/lib: camelCase → `formatDate.ts`
+
+## Urutan Pengerjaan
+1. Navbar + Footer (layout global)
+2. Homepage section per section
+3. Halaman listing (Berita, Peluang Investasi, Sektor)
+4. Halaman detail dynamic route [slug]
+5. Halaman form/auth (Login, Kepeminatan)
+6. Halaman khusus (Peta Investasi, Sidikerjo)
+
+## Git & Version Control
+
+### Setup awal (jalankan sekali di folder fe-cjip)
+```bash
+mkdir -p .githooks
+
+# Auto strip AI co-author & cleanup commit message
+cat > .githooks/commit-msg << 'EOF'
+#!/bin/sh
+sed -i '' '/^Co-authored-by:.*cursor\|copilot\|claude\|anthropic\|cursoragent/Id' "$1"
+EOF
+
+chmod +x .githooks/commit-msg
+git config core.hooksPath .githooks
+```
+
+### Commit message format
+- Gunakan prefix: `feat:`, `fix:`, `refactor:`, `style:`, `chore:`, `docs:`
+- Singkat dan deskriptif, max 72 karakter di baris pertama
+- Contoh benar:
+```
+  feat: add Navbar component with dropdown support
+  fix: hero image not loading on mobile
+  refactor: move fetch logic to services/berita.ts
+  chore: update tailwind config with brand colors
+```
+- Contoh salah:
+```
+  feat: add Navbar component generated by AI assistant
+  update stuff
+  fix bug
+  WIP
+```
+
+### Sebelum setiap commit — wajib cek
+- [ ] Tidak ada baris `Co-authored-by:` dari AI di commit message
+- [ ] Tidak ada komentar AI di kode:
+      `// Generated by`, `// AI`, `// Claude`, `// Cursor`, `// Copilot`,
+      `// vibe`, `// auto-generated`, `// created by cursor`
+- [ ] Tidak ada `console.log` debugging yang tertinggal
+- [ ] Tidak ada file `.env.local` atau credential yang ikut ter-stage
+- [ ] Tidak ada komentar obvious yang di-generate AI:
+      (contoh: `// This function fetches data from the API`)
+- [ ] Komentar yang tersisa harus natural dan teknis
+
+### Sebelum push ke GitHub — wajib cek
+- [ ] Jalankan `git diff --staged` — review semua perubahan
+- [ ] Pastikan tidak ada secret/token/password yang ikut masuk
+- [ ] Pastikan `.env.local` tidak ada di staging area
+- [ ] Jalankan `npm run build` — pastikan tidak ada error TypeScript
+- [ ] Jalankan `npm run lint` — pastikan tidak ada ESLint error
+
+### Branch strategy
+- `main` → production ready, tidak boleh push langsung
+- `dev` → development utama
+- `feat/nama-fitur` → fitur baru (contoh: `feat/navbar`, `feat/halaman-berita`)
+- `fix/nama-bug` → bugfix (contoh: `fix/dropdown-mobile`)
+- Merge ke `dev` dulu, baru ke `main` setelah tested
+
+### .gitignore — pastikan include ini semua
+```
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build
+.next/
+out/
+build/
+
+# Environment — JANGAN PERNAH COMMIT
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# Secrets & keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cursor AI — jangan ikut commit
+.cursor/chat/
+```
+
+### Jangan pernah commit file berikut
+- `.env.local`, `.env.production`, semua file `.env` yang berisi nilai nyata
+- File private key, certificate, credential apapun
+- Folder `.next/` dan `node_modules/`
+- File log apapun
+
+## Testing & Unit Test
+
+### Setup (jalankan sekali)
+```bash
+npm install -D jest jest-environment-jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event ts-jest @types/jest
+```
+
+Buat `jest.config.ts` di root:
+```ts
+import type { Config } from 'jest'
+import nextJest from 'next/jest.js'
+
+const createJestConfig = nextJest({ dir: './' })
+
+const config: Config = {
+  coverageProvider: 'v8',
+  testEnvironment: 'jsdom',
+  setupFilesAfterFramework: ['<rootDir>/jest.setup.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+}
+
+export default createJestConfig(config)
+```
+
+Buat `jest.setup.ts` di root:
+```ts
+import '@testing-library/jest-dom'
+```
+
+Tambahkan script di `package.json`:
+```json
+"scripts": {
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage"
+}
+```
+
+### Struktur folder test
+```
+src/
+├── components/
+│   └── layout/
+│       ├── Navbar.tsx
+│       └── __tests__/
+│           └── Navbar.test.tsx   ← test di sebelah komponen
+├── lib/
+│   ├── utils.ts
+│   └── __tests__/
+│       └── utils.test.ts
+├── services/
+│   ├── berita.ts
+│   └── __tests__/
+│       └── berita.test.ts
+```
+
+### Aturan penulisan test
+- Setiap komponen UI baru WAJIB ada file `__tests__/*.test.tsx`
+- Setiap fungsi di `src/lib/` dan `src/services/` WAJIB ada test
+- Gunakan `describe` untuk grouping, `it` untuk test case
+- Nama test harus deskriptif — jelaskan behavior, bukan nama fungsi
+
+```ts
+// ✅ Benar
+it('menampilkan dropdown ketika tombol menu diklik')
+it('menyembunyikan navbar saat scroll ke bawah')
+it('mengembalikan data berita terurut berdasarkan tanggal terbaru')
+
+// ❌ Salah
+it('test navbar')
+it('works correctly')
+it('handleClick')
+```
+
+### Template test komponen
+```tsx
+// src/components/layout/__tests__/Navbar.test.tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Navbar } from '@/components/layout/Navbar'
+
+describe('Navbar', () => {
+  it('merender logo CJIP', () => {
+    render(<Navbar />)
+    expect(screen.getByAltText('Logo CJIP')).toBeInTheDocument()
+  })
+
+  it('menampilkan semua menu utama', () => {
+    render(<Navbar />)
+    expect(screen.getByText('Beranda')).toBeInTheDocument()
+    expect(screen.getByText('Profil Jawa Tengah')).toBeInTheDocument()
+  })
+
+  it('membuka dropdown saat menu diklik', async () => {
+    const user = userEvent.setup()
+    render(<Navbar />)
+    await user.click(screen.getByText('Investasi'))
+    expect(screen.getByText('Peluang Investasi')).toBeVisible()
+  })
+})
+```
+
+### Template test utility/service
+```ts
+// src/lib/__tests__/utils.test.ts
+import { formatTanggal, formatRupiah } from '@/lib/utils'
+
+describe('formatTanggal', () => {
+  it('mengubah format ISO ke format Indonesia', () => {
+    expect(formatTanggal('2026-06-01')).toBe('1 Juni 2026')
+  })
+
+  it('mengembalikan string kosong jika input tidak valid', () => {
+    expect(formatTanggal('')).toBe('')
+  })
+})
+
+describe('formatRupiah', () => {
+  it('memformat angka ke format rupiah', () => {
+    expect(formatRupiah(10000000)).toBe('Rp 10.000.000')
+  })
+})
+```
+
+### Template test service/fetch
+```ts
+// src/services/__tests__/berita.test.ts
+import { getBerita, getBeritaBySlug } from '@/services/berita'
+
+// Mock fetch global
+global.fetch = jest.fn()
+
+describe('getBerita', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('mengembalikan list berita dari API', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ([{ id: 1, judul: 'Test Berita', slug: 'test-berita' }]),
+    })
+
+    const result = await getBerita()
+    expect(result).toHaveLength(1)
+    expect(result[0].judul).toBe('Test Berita')
+  })
+
+  it('throw error jika response tidak ok', async () => {
+    ;(fetch as jest.Mock).mockResolvedValueOnce({ ok: false })
+    await expect(getBerita()).rejects.toThrow('Gagal mengambil data berita')
+  })
+})
+```
+
+### Coverage target
+- Minimal **70% coverage** untuk semua file di `src/`
+- Prioritas coverage:
+  1. `src/lib/` → 90%+ (pure functions, mudah di-test)
+  2. `src/services/` → 80%+ (fetch logic)
+  3. `src/components/ui/` → 70%+ (reusable components)
+  4. `src/components/home/` → 60%+ (page sections)
+
+### Sebelum push ke GitHub — tambahkan ke checklist
+- [ ] Jalankan `npm test` — semua test harus passing
+- [ ] Jalankan `npm run test:coverage` — coverage tidak boleh turun
+- [ ] Tidak ada test yang di-skip dengan `.skip` tanpa alasan jelas

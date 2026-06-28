@@ -1,0 +1,9 @@
+#!/bin/sh
+# Strip AI co-author trailers from commit messages
+sed -i '' \
+  -e '/cursoragent@cursor\.com/d' \
+  -e '/^Co-authored-by:.*[Cc]ursor/d' \
+  -e '/^Co-authored-by:.*[Cc]opilot/d' \
+  -e '/^Co-authored-by:.*[Cc]laude/d' \
+  -e '/^Co-authored-by:.*[Aa]nthropic/d' \
+  "$1"
