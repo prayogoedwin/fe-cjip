@@ -2,24 +2,71 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { LOGO_WHITE } from '@/lib/assets'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { loginApi } from '@/lib/api'
+import { ApiError } from '@/lib/api/client'
 import { getRedirectAfterLogin, setAuthCookie } from '@/lib/auth'
+
+const TURNSTILE_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'
 
 interface LoginFormProps {
   rdr?: string
 }
 
+function formatApiError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.body?.errors) {
+      const messages = Object.values(err.body.errors).flat()
+      if (messages.length) return messages.join(' ')
+    }
+    if (err.status === 401) return err.message || 'Email atau password salah.'
+    if (err.status === 422) return err.message || 'Data tidak valid.'
+    return err.message
+  }
+  if (err instanceof Error) return err.message
+  return 'Terjadi kesalahan. Silakan coba lagi.'
+}
+
 export function LoginForm({ rdr }: LoginFormProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [captchaError, setCaptchaError] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
   const isSinidaLogin = rdr === 'sinida'
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setAuthCookie()
-    router.push(getRedirectAfterLogin(rdr))
+    setError('')
+
+    if (!turnstileToken) {
+      setCaptchaError(true)
+      return
+    }
+    setCaptchaError(false)
+    setLoading(true)
+
+    try {
+      const res = await loginApi({
+        email: email.trim(),
+        password,
+        turnstile_token: turnstileToken,
+      })
+      setAuthCookie(res.data.token)
+      router.push(getRedirectAfterLogin(rdr))
+    } catch (err) {
+      setError(formatApiError(err))
+      setTurnstileToken(null)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -77,15 +124,19 @@ export function LoginForm({ rdr }: LoginFormProps) {
               : 'Masuk ke akun CJIP Anda untuk mengakses semua fitur platform.'}
           </p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={(e) => void handleSubmit(e)}>
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-neutral-700">
                 Email address <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@perusahaan.com"
                 required
+                autoComplete="email"
                 className="w-full rounded-lg border border-brand-100 px-4 py-2.5 text-sm outline-none focus:border-brand-500"
               />
             </div>
@@ -97,8 +148,12 @@ export function LoginForm({ rdr }: LoginFormProps) {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password"
                   required
+                  autoComplete="current-password"
                   className="w-full rounded-lg border border-brand-100 px-4 py-2.5 pr-24 text-sm outline-none focus:border-brand-500"
                 />
                 <button
@@ -113,36 +168,45 @@ export function LoginForm({ rdr }: LoginFormProps) {
 
             <div className="mb-6">
               <label className="mb-1 block text-sm font-medium text-neutral-700">
-                Captcha <span className="text-red-500">*</span>
+                Verifikasi <span className="text-red-500">*</span>
               </label>
-              <div className="flex gap-2">
-                <Image
-                  src="https://cjip.jatengprov.go.id/captcha"
-                  alt="Kode captcha verifikasi"
-                  width={120}
-                  height={44}
-                  className="rounded border border-brand-100"
-                />
-                <input
-                  type="text"
-                  placeholder="Masukkan captcha"
-                  required
-                  className="flex-1 rounded-lg border border-brand-100 px-4 py-2.5 text-sm outline-none focus:border-brand-500"
-                />
-                <button
-                  type="button"
-                  className="rounded-lg border border-brand-100 px-3 text-sm text-neutral-600 transition duration-300 hover:bg-brand-50"
-                >
-                  ↻
-                </button>
-              </div>
+              <p className="mb-2 text-xs text-neutral-500">
+                Centang kotak di bawah untuk konfirmasi bahwa Anda bukan robot.
+              </p>
+              <Turnstile
+                siteKey={TURNSTILE_SITE_KEY}
+                options={{
+                  theme: 'light',
+                  size: 'normal',
+                  appearance: 'always',
+                }}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setCaptchaError(false)
+                }}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => {
+                  setTurnstileToken(null)
+                  setCaptchaError(true)
+                }}
+              />
+              {captchaError && (
+                <p className="mt-2 text-xs text-red-500">
+                  Silakan selesaikan verifikasi terlebih dahulu.
+                </p>
+              )}
             </div>
+
+            {error ? (
+              <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+            ) : null}
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-brand-500 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-brand-600"
+              disabled={!turnstileToken || loading}
+              className="w-full rounded-lg bg-brand-500 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign in
+              {loading ? 'Memproses...' : 'Sign in'}
             </button>
           </form>
 

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import type { PeluangInvestasi } from '@/types'
 
@@ -21,7 +21,14 @@ interface ProyekCardProps {
   variant?: 'default' | 'sektor'
 }
 
+function detailHref(proyek: PeluangInvestasi) {
+  if (proyek.slug) return `/peluang-investasi/${proyek.slug}`
+  return `/peluang-investasi/${proyek.id}`
+}
+
 export function ProyekCard({ proyek, variant = 'default' }: ProyekCardProps) {
+  const href = detailHref(proyek)
+
   return (
     <article className="overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm transition duration-300 hover:shadow-md">
       {variant === 'sektor' && (
@@ -30,13 +37,13 @@ export function ProyekCard({ proyek, variant = 'default' }: ProyekCardProps) {
             {proyek.sektor}
           </span>
           <div className="flex gap-3 text-brand-500">
-            <Link href="#">Detail</Link>
-            <Link href="#">Lokasi</Link>
+            <Link href={href}>Detail</Link>
+            <Link href={href}>Lokasi</Link>
           </div>
         </div>
       )}
       <div className="relative h-44">
-        <Image
+        <SafeImage
           src={proyek.thumbnail}
           alt={proyek.judul}
           fill
@@ -64,7 +71,7 @@ export function ProyekCard({ proyek, variant = 'default' }: ProyekCardProps) {
         )}
         <div className="flex items-center justify-between border-t border-brand-50 pt-3">
           <span className="text-sm font-semibold text-brand-500">{proyek.nilai}</span>
-          <Link href="#" className="text-sm font-medium text-brand-500">
+          <Link href={href} className="text-sm font-medium text-brand-500">
             Lihat Detail →
           </Link>
         </div>

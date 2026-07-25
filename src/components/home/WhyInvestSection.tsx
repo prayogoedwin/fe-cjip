@@ -1,15 +1,34 @@
-import Image from 'next/image'
 import { Container } from '@/components/ui/Container'
 import { SectionLabel } from '@/components/ui/SectionLabel'
+import { SafeImage } from '@/components/ui/SafeImage'
+import { resolveImageUrl } from '@/lib/images'
 
-export function WhyInvestSection() {
+const DEFAULT_IMAGE =
+  'https://cjip.jatengprov.go.id/storage/settings/gambar/F43a03QEw9olouMBnWHfSyKqcfWoEs-metacGV0YSBqYXdhIHRlbmdhaC5wbmc=-.png'
+
+interface WhyInvestSectionProps {
+  opening?: {
+    title: string
+    desc: string
+    image: string | null
+  }
+}
+
+export function WhyInvestSection({ opening }: WhyInvestSectionProps) {
+  const title = opening?.title || 'Mengapa Berinvestasi Di Jawa Tengah?'
+  const desc =
+    opening?.desc ||
+    'Jawa Tengah menawarkan iklim investasi yang kondusif dengan pertumbuhan ekonomi yang positif, infrastruktur yang terus berkembang, serta biaya tenaga kerja yang kompetitif.\n\nDidukung masyarakat yang ramah dan etos kerja tinggi, Jawa Tengah menjadi pilihan strategis bagi investor yang ingin tumbuh bersama wilayah penuh potensi.\n\nTahun 2025, UMK berkisar antara Rp 2.170.475 (Banjarnegara) hingga Rp 3.454.827 (Kota Semarang), memberikan fleksibilitas biaya produksi.'
+  const image = resolveImageUrl(opening?.image) || DEFAULT_IMAGE
+  const paragraphs = desc.split(/\n\n+/).filter(Boolean)
+
   return (
     <section className="px-6 py-16">
       <Container>
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div className="relative h-[280px] overflow-hidden rounded-xl sm:h-[340px] lg:h-[380px]">
-            <Image
-              src="https://cjip.jatengprov.go.id/storage/settings/gambar/F43a03QEw9olouMBnWHfSyKqcfWoEs-metacGV0YSBqYXdhIHRlbmdhaC5wbmc=-.png"
+            <SafeImage
+              src={image}
               alt="Peta Jawa Tengah"
               fill
               className="object-cover"
@@ -18,22 +37,12 @@ export function WhyInvestSection() {
           </div>
           <div>
             <SectionLabel>Mengapa Jawa Tengah?</SectionLabel>
-            <h2 className="mb-4 text-[clamp(1.4rem,3vw,2rem)] font-bold text-brand-900">
-              Mengapa Berinvestasi Di Jawa Tengah?
-            </h2>
-            <p className="mb-4 text-[0.95rem] leading-relaxed text-content-muted">
-              Jawa Tengah menawarkan iklim investasi yang kondusif dengan pertumbuhan ekonomi yang
-              positif, infrastruktur yang terus berkembang, serta biaya tenaga kerja yang kompetitif.
-            </p>
-            <p className="mb-4 text-[0.95rem] leading-relaxed text-content-muted">
-              Didukung masyarakat yang ramah dan etos kerja tinggi, Jawa Tengah menjadi pilihan
-              strategis bagi investor yang ingin tumbuh bersama wilayah penuh potensi.
-            </p>
-            <p className="mb-6 text-[0.95rem] leading-relaxed text-content-muted">
-              Tahun 2025, UMK berkisar antara <strong className="text-content-main">Rp 2.170.475</strong>{' '}
-              (Banjarnegara) hingga <strong className="text-content-main">Rp 3.454.827</strong> (Kota
-              Semarang), memberikan fleksibilitas biaya produksi.
-            </p>
+            <h2 className="mb-4 text-[clamp(1.4rem,3vw,2rem)] font-bold text-brand-900">{title}</h2>
+            {paragraphs.map((p) => (
+              <p key={p.slice(0, 48)} className="mb-4 text-[0.95rem] leading-relaxed text-content-muted">
+                {p}
+              </p>
+            ))}
             <div className="mt-6 flex flex-wrap gap-4">
               {[
                 { value: 'Rp 88,44 T', label: 'Realisasi Investasi 2024' },

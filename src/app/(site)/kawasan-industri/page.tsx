@@ -1,59 +1,75 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
-import { CtaBanner } from '@/components/layout/CtaBanner'
+import { SafeImage } from '@/components/ui/SafeImage'
 import { KawasanGrid } from '@/components/kawasan/KawasanGrid'
 import { createPageMetadata } from '@/lib/page-metadata'
-import { mockKawasan } from '@/lib/mock-data'
+import { fetchKawasanList } from '@/lib/api'
 
 export const metadata: Metadata = createPageMetadata(
   'Kawasan Industri',
   'Temukan kawasan industri strategis di Jawa Tengah — KEK, BUMN, dan swasta',
 )
 
-export default function KawasanIndustriPage() {
+export default async function KawasanIndustriPage() {
+  const { data } = await fetchKawasanList({ perPage: 50 })
+  const kawasan = data
+
   return (
     <>
       <PageHero
-        label="Investasi"
+        label="Infrastruktur Investasi"
         title="Kawasan Industri"
-        description="Kawasan industri strategis di Jawa Tengah dengan infrastruktur lengkap dan lokasi premium"
+        description="Kawasan industri strategis di Jawa Tengah siap mendukung pertumbuhan bisnis Anda"
         breadcrumbs={[{ label: 'Beranda', href: '/' }, { label: 'Kawasan Industri' }]}
       />
 
-      <div className="bg-brand-500 px-6 py-8 text-white">
+      <section className="px-6 py-10">
         <Container>
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div>
-              <span className="mb-2 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
-                KEK Unggulan
+          <div className="mb-10 grid items-center gap-8 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 md:grid-cols-2">
+            <div className="p-6 md:p-8">
+              <span className="mb-3 inline-block rounded-full bg-brand-500 px-3 py-1 text-xs font-bold text-white">
+                Kawasan Ekonomi Khusus
               </span>
-              <h2 className="text-xl font-bold">Kawasan Ekonomi Khusus Jawa Tengah</h2>
-              <p className="mt-1 text-sm text-white/80">
-                KEK Kendal dan KEK Industropolis Batang — pusat industri terintegrasi
+              <h2 className="mb-2 text-xl font-bold text-brand-900 md:text-2xl">
+                2 KEK Strategis di Jawa Tengah
+              </h2>
+              <p className="mb-5 text-sm leading-relaxed text-neutral-600">
+                Jawa Tengah memiliki dua Kawasan Ekonomi Khusus yang menawarkan fasilitas fiskal dan
+                kemudahan berusaha bagi investor.
               </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/kawasan-industri/kek-kendal"
+                  className="rounded-xl border border-brand-100 bg-white p-4 transition duration-300 hover:border-brand-500"
+                >
+                  <p className="font-bold text-brand-900">KEK Kendal</p>
+                  <p className="mt-1 text-xs text-neutral-500">Kawasan industri modern</p>
+                </Link>
+                <Link
+                  href="/kawasan-industri/grand-batang-city"
+                  className="rounded-xl border border-brand-100 bg-white p-4 transition duration-300 hover:border-brand-500"
+                >
+                  <p className="font-bold text-brand-900">KEK Batang</p>
+                  <p className="mt-1 text-xs text-neutral-500">Industropolis Batang</p>
+                </Link>
+              </div>
             </div>
-            <div className="flex gap-8 text-center">
-              <div>
-                <p className="text-2xl font-bold">2</p>
-                <p className="text-xs text-white/70">KEK Aktif</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">6.500+</p>
-                <p className="text-xs text-white/70">Ha Total Luas</p>
-              </div>
+            <div className="relative min-h-[200px] md:min-h-[260px]">
+              <SafeImage
+                src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80"
+                alt="Kawasan Ekonomi Khusus Jawa Tengah"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </div>
           </div>
-        </Container>
-      </div>
 
-      <section className="px-6 py-12">
-        <Container>
-          <KawasanGrid kawasan={mockKawasan} />
+          <KawasanGrid kawasan={kawasan} />
         </Container>
       </section>
-
-      <CtaBanner />
     </>
   )
 }

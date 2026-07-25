@@ -1,13 +1,26 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
-import { CtaBanner } from '@/components/layout/CtaBanner'
+import { SafeImage } from '@/components/ui/SafeImage'
 import { createPageMetadata } from '@/lib/page-metadata'
 
 export const metadata: Metadata = createPageMetadata(
   'SIDIKERJO',
   'Sistem Informasi Ketenagakerjaan Jawa Tengah — integrasi data ketenagakerjaan terpadu',
 )
+
+const SIDIKERJO_CARDS = [
+  {
+    title: 'Infographis SIDIKERJO',
+    href: '/infografis-sidikerjo',
+    image: 'https://cjip.jatengprov.go.id/images/infographis_sidikerjo.png',
+  },
+  {
+    title: 'Peta SIDIKERJO',
+    href: '/peta-investasi',
+    image: 'https://cjip.jatengprov.go.id/images/peta_sidikerjo.png',
+  },
+] as const
 
 export default function SidikerjoPage() {
   return (
@@ -36,11 +49,15 @@ export default function SidikerjoPage() {
                   key={item.label}
                   className="flex items-center gap-3 rounded-xl border border-brand-100 px-5 py-3"
                 >
-                  <span className="text-2xl" aria-hidden="true">{item.icon}</span>
+                  <span className="text-2xl" aria-hidden="true">
+                    {item.icon}
+                  </span>
                   <span className="font-semibold text-brand-900">{item.label}</span>
                 </div>
               ) : (
-                <span key={i} className="text-xl text-brand-300" aria-hidden="true">+</span>
+                <span key={i} className="text-xl text-brand-300" aria-hidden="true">
+                  +
+                </span>
               ),
             )}
           </div>
@@ -58,55 +75,24 @@ export default function SidikerjoPage() {
             </p>
           </div>
 
-          <div className="mb-12 grid grid-cols-3 gap-4 text-center">
-            {[
-              { value: '36,9 Jt', label: 'Total Penduduk' },
-              { value: '18,2 Jt', label: 'Angkatan Kerja' },
-              { value: '1,2 Jt', label: 'Pencari Kerja' },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-brand-100 bg-brand-50 p-5">
-                <p className="text-2xl font-bold text-brand-500">{stat.value}</p>
-                <p className="mt-1 text-xs text-neutral-500">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-12 grid gap-5 md:grid-cols-3">
-            {[
-              { icon: '📊', title: 'Data Real-time', desc: 'Akses data ketenagakerjaan terkini dari berbagai sumber terintegrasi.' },
-              { icon: '🗺️', title: 'Peta Ketenagakerjaan', desc: 'Visualisasi sebaran tenaga kerja dan peluang kerja per wilayah.' },
-              { icon: '📈', title: 'Analisis Tren', desc: 'Analisis tren pasar kerja untuk mendukung perencanaan investasi.' },
-            ].map((feature) => (
-              <div key={feature.title} className="rounded-xl border border-brand-100 bg-white p-6 text-center shadow-sm">
-                <div className="mb-3 text-4xl" aria-hidden="true">{feature.icon}</div>
-                <h4 className="mb-2 font-semibold text-brand-900">{feature.title}</h4>
-                <p className="text-sm text-neutral-600">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {[
-              { title: 'Infografis Ketenagakerjaan', href: '#', emoji: '📊' },
-              { title: 'Peta Sebaran Tenaga Kerja', href: '#', emoji: '🗺️' },
-            ].map((tile) => (
-              <Link
-                key={tile.title}
-                href={tile.href}
-                className="flex items-center gap-5 rounded-xl border border-brand-100 bg-white p-6 shadow-sm transition duration-300 hover:border-brand-300"
-              >
-                <span className="text-5xl" aria-hidden="true">{tile.emoji}</span>
-                <div>
-                  <h4 className="font-semibold text-brand-900">{tile.title}</h4>
-                  <p className="text-sm text-brand-500">Lihat selengkapnya →</p>
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+            {SIDIKERJO_CARDS.map((card) => (
+              <Link key={card.title} href={card.href} className="group block">
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-brand-50 shadow-[0_8px_28px_rgba(26,99,36,0.12)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_14px_36px_rgba(26,99,36,0.18)]">
+                  <SafeImage
+                    src={card.image}
+                    alt={card.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 420px"
+                  />
                 </div>
+                <span className="sr-only">{card.title}</span>
               </Link>
             ))}
           </div>
         </Container>
       </section>
-
-      <CtaBanner />
     </>
   )
 }

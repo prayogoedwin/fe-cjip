@@ -2,16 +2,21 @@ import type { Metadata } from 'next'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
 import { ProyekListing } from '@/components/ui/ProyekListing'
-import { CtaBanner } from '@/components/layout/CtaBanner'
 import { createPageMetadata } from '@/lib/page-metadata'
-import { mockPeluang } from '@/lib/mock-data'
+import { fetchKabKota, fetchProyekList, fetchSektorList } from '@/lib/api'
 
 export const metadata: Metadata = createPageMetadata(
   'Kesiapan Proyek',
   'Temukan proyek investasi siap ditawarkan di Jawa Tengah berdasarkan tingkat kesiapan',
 )
 
-export default function PeluangInvestasiPage() {
+export default async function PeluangInvestasiPage() {
+  const [{ data }, sektorOptions, kabkotaOptions] = await Promise.all([
+    fetchProyekList({ perPage: 100 }),
+    fetchSektorList(),
+    fetchKabKota(),
+  ])
+
   return (
     <>
       <PageHero
@@ -26,11 +31,13 @@ export default function PeluangInvestasiPage() {
 
       <section className="px-6 py-12">
         <Container>
-          <ProyekListing proyek={mockPeluang} />
+          <ProyekListing
+            proyek={data}
+            sektorOptions={sektorOptions}
+            kabkotaOptions={kabkotaOptions}
+          />
         </Container>
       </section>
-
-      <CtaBanner />
     </>
   )
 }

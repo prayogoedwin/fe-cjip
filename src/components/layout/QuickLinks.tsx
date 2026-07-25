@@ -12,6 +12,9 @@ interface QuickLinksProps {
   variant?: 'bar' | 'overlay'
 }
 
+const linkBaseClass =
+  'flex h-auto min-h-[48px] items-center justify-center rounded-full border-2 border-white/40 px-3 py-3 text-center text-[0.72rem] leading-[1.35] font-semibold tracking-wide text-white transition duration-300 hover:border-white/80 hover:bg-white/15 sm:min-h-0 sm:px-[1.6rem] sm:py-2.5 sm:text-[0.88rem] sm:leading-normal sm:whitespace-nowrap'
+
 export function QuickLinks({ variant = 'bar' }: QuickLinksProps) {
   const isOverlay = variant === 'overlay'
 
@@ -19,17 +22,19 @@ export function QuickLinks({ variant = 'bar' }: QuickLinksProps) {
     <div
       className={
         isOverlay
-          ? 'flex flex-wrap items-center justify-center gap-3 px-4 py-3 sm:px-8'
-          : 'flex flex-wrap items-center justify-center gap-3 bg-brand-900 px-4 py-4 sm:px-8'
+          ? 'grid grid-cols-2 gap-2 px-0 py-0 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 sm:px-8 sm:py-3'
+          : 'grid grid-cols-2 gap-2 bg-brand-900 px-3 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 sm:px-8 sm:py-4'
       }
     >
-      {QUICK_LINKS.map((link) => (
+      {QUICK_LINKS.map((link, index) => (
         <Link
           key={link.label}
           href={link.href}
-          className="rounded-full border-2 border-white/40 px-[1.6rem] py-2.5 text-[0.88rem] font-semibold tracking-wide whitespace-nowrap text-white transition duration-300 hover:border-white/80 hover:bg-white/15"
+          className={`${linkBaseClass} ${
+            index === QUICK_LINKS.length - 1 ? 'col-span-2 sm:col-span-1' : ''
+          }`}
         >
-          {link.label}
+          <span className="block sm:inline">{link.label}</span>
         </Link>
       ))}
     </div>

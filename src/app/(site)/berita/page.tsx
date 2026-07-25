@@ -1,22 +1,30 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
 import { SearchBox } from '@/components/ui/SearchBox'
 import { Pagination } from '@/components/ui/Pagination'
-import { CtaBanner } from '@/components/layout/CtaBanner'
+import { SafeImage } from '@/components/ui/SafeImage'
 import { createPageMetadata } from '@/lib/page-metadata'
-import { mockBerita, popularTags } from '@/lib/mock-data'
+import { fetchBeritaList, fetchBeritaTags } from '@/lib/api'
 
 export const metadata: Metadata = createPageMetadata(
   'Berita',
   'Ikuti perkembangan terkini seputar investasi dan pembangunan Jawa Tengah',
 )
 
-export default function BeritaPage() {
-  const featured = mockBerita[0]
-  const list = mockBerita.slice(1)
+export default async function BeritaPage() {
+  const [{ data: apiList, meta }, tags] = await Promise.all([
+    fetchBeritaList({ perPage: 12 }),
+    fetchBeritaTags(),
+  ])
+
+  const berita = apiList
+  const featured = berita[0]
+  const list = berita.slice(1)
+  const tagList = tags.map((t) => t.nama)
+  const total = meta?.total ?? berita.length
+  const lastPage = meta?.last_page ?? 1
 
   return (
     <>
@@ -33,35 +41,45 @@ export default function BeritaPage() {
             <div>
               <SearchBox placeholder="Cari berita..." className="mb-8" />
 
-              <article className="mb-8 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm md:grid md:grid-cols-2">
-                <div className="relative h-56 md:h-auto">
-                  <Image
-                    src={featured.thumbnail}
-                    alt={featured.judul}
-                    fill
-                    className="object-cover"
-                    sizes="50vw"
-                    priority
-                  />
-                </div>
-                <div className="p-6">
-                  <p className="mb-2 text-xs text-neutral-500">{featured.tanggal}</p>
-                  <h2 className="mb-3 text-xl font-bold text-brand-900">{featured.judul}</h2>
-                  <p className="mb-4 text-sm leading-relaxed text-neutral-600">{featured.excerpt}</p>
-                  <Link href="#" className="text-sm font-medium text-brand-500">
-                    Baca Selengkapnya →
-                  </Link>
-                </div>
-              </article>
+              {featured ? (
+                <article className="mb-8 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm md:grid md:grid-cols-2">
+                  <div className="relative h-56 md:h-auto">
+                    <SafeImage
+                      src={featured.thumbnail}
+                      alt={featured.judul}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                      priority
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="mb-2 text-xs text-neutral-500">{featured.tanggal}</p>
+                    <h2 className="mb-3 text-xl font-bold text-brand-900">{featured.judul}</h2>
+                    <p className="mb-4 text-sm leading-relaxed text-neutral-600">{featured.excerpt}</p>
+                    <Link
+                      href={`/berita/${featured.slug}`}
+                      className="text-sm font-medium text-brand-500"
+                    >
+                      Baca Selengkapnya →
+                    </Link>
+                  </div>
+                </article>
+              ) : null}
 
               <div className="space-y-5">
+                {list.length === 0 && !featured ? (
+                  <p className="rounded-xl border border-dashed border-brand-200 bg-white px-6 py-16 text-center text-neutral-400">
+                    Data berita kosong
+                  </p>
+                ) : null}
                 {list.map((item) => (
                   <article
                     key={item.id}
                     className="flex gap-4 overflow-hidden rounded-xl border border-brand-100 bg-white p-3 shadow-sm"
                   >
                     <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg">
-                      <Image
+                      <SafeImage
                         src={item.thumbnail}
                         alt={item.judul}
                         fill
@@ -73,7 +91,10 @@ export default function BeritaPage() {
                       <p className="mb-1 text-xs text-neutral-500">{item.tanggal}</p>
                       <h4 className="mb-1 line-clamp-2 font-semibold text-brand-900">{item.judul}</h4>
                       <p className="mb-2 line-clamp-2 text-sm text-neutral-600">{item.excerpt}</p>
-                      <Link href="#" className="text-sm font-medium text-brand-500">
+                      <Link
+                        href={`/berita/${item.slug}`}
+                        className="text-sm font-medium text-brand-500"
+                      >
                         Baca Selengkapnya →
                       </Link>
                     </div>
@@ -81,16 +102,22 @@ export default function BeritaPage() {
                 ))}
               </div>
 
-              <Pagination totalPages={14} resultText="Showing 1 to 7 of 68 results" />
+              <Pagination
+                totalPages={lastPage}
+                resultText={`Showing ${berita.length} of ${total} results`}
+              />
             </div>
 
             <aside className="space-y-6">
               <div className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 font-semibold text-brand-900">Berita Populer</h3>
                 <ul className="space-y-3">
-                  {mockBerita.slice(0, 4).map((item) => (
+                  {berita.slice(0, 4).map((item) => (
                     <li key={item.id}>
-                      <Link href="#" className="text-sm text-neutral-700 transition duration-300 hover:text-brand-500">
+                      <Link
+                        href={`/berita/${item.slug}`}
+                        className="text-sm text-neutral-700 transition duration-300 hover:text-brand-500"
+                      >
                         {item.judul}
                       </Link>
                     </li>
@@ -101,10 +128,10 @@ export default function BeritaPage() {
               <div className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 font-semibold text-brand-900">Topik</h3>
                 <div className="flex flex-wrap gap-2">
-                  {popularTags.map((tag) => (
+                  {tagList.map((tag) => (
                     <Link
                       key={tag}
-                      href="#"
+                      href={`/berita?kategori=${encodeURIComponent(tag)}`}
                       className="rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-700 transition duration-300 hover:bg-brand-100"
                     >
                       {tag}
@@ -131,8 +158,6 @@ export default function BeritaPage() {
           </div>
         </Container>
       </section>
-
-      <CtaBanner />
     </>
   )
 }

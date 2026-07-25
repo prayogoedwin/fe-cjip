@@ -1,12 +1,8 @@
 'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
-import { CtaBanner } from '@/components/layout/CtaBanner'
-
-const faqNav = [
+const defaultFaqNav = [
   { id: 'prosedur', icon: '📋', label: 'Prosedur Investasi' },
   { id: 'lisensi', icon: '📄', label: 'Mendapatkan Lisensi' },
   { id: 'insentif', icon: '🎁', label: 'Insentif' },
@@ -15,7 +11,7 @@ const faqNav = [
   { id: 'layanan', icon: '📞', label: 'Layanan Bantuan' },
 ]
 
-const accordionData: Record<string, { q: string; a: string }[]> = {
+const defaultAccordion: Record<string, { q: string; a: string }[]> = {
   prosedur: [
     { q: 'Bagaimana cara memulai investasi di Jawa Tengah?', a: 'Investor dapat memulai dengan mengakses platform CJIP, memilih proyek yang diminati, dan mengajukan Letter of Intent melalui formulir kepeminatan.' },
     { q: 'Berapa lama proses perizinan investasi?', a: 'Dengan sistem OSS dan layanan DPMPTSP, proses perizinan dapat diselesaikan dalam 1-3 hari kerja untuk investasi yang memenuhi persyaratan.' },
@@ -35,6 +31,14 @@ const accordionData: Record<string, { q: string; a: string }[]> = {
   ],
 }
 
+const FAQ_ICONS = ['📋', '📄', '🎁', '💰', '🔒', '📞', '❓', '📌']
+
+type FaqGroup = {
+  id: number
+  nama: string
+  items: Array<{ id: number; question: string; answer: string }>
+}
+
 function Accordion({ items }: { items: { q: string; a: string }[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
@@ -51,9 +55,10 @@ function Accordion({ items }: { items: { q: string; a: string }[] }) {
             <span className="text-brand-500">{openIndex === index ? '−' : '+'}</span>
           </button>
           {openIndex === index && (
-            <div className="border-t border-brand-50 px-5 py-4 text-sm leading-relaxed text-neutral-600">
-              {item.a}
-            </div>
+            <div
+              className="prose prose-neutral prose-sm max-w-none border-t border-brand-50 px-5 py-4 text-sm leading-relaxed text-neutral-600 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0"
+              dangerouslySetInnerHTML={{ __html: item.a }}
+            />
           )}
         </div>
       ))}
@@ -61,8 +66,36 @@ function Accordion({ items }: { items: { q: string; a: string }[] }) {
   )
 }
 
-export function PanduanContent() {
-  const [activeSection, setActiveSection] = useState('prosedur')
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+export function PanduanContent({ faqGroups }: { faqGroups?: FaqGroup[] | null }) {
+  const nav = useMemo(() => {
+    if (!faqGroups?.length) return defaultFaqNav
+    return faqGroups.map((g, i) => ({
+      id: slugify(g.nama) || String(g.id),
+      icon: FAQ_ICONS[i % FAQ_ICONS.length],
+      label: g.nama,
+    }))
+  }, [faqGroups])
+
+  const accordionData = useMemo(() => {
+    if (!faqGroups?.length) return defaultAccordion
+    const map: Record<string, { q: string; a: string }[]> = {}
+    for (const g of faqGroups) {
+      const id = slugify(g.nama) || String(g.id)
+      map[id] = g.items.map((item) => ({ q: item.question, a: item.answer }))
+    }
+    return map
+  }, [faqGroups])
+
+  const [activeSection, setActiveSection] = useState(nav[0]?.id ?? 'prosedur')
+  const hasApiFaq = Boolean(faqGroups?.length)
+  const showStaticExtras = !hasApiFaq
 
   return (
     <>
@@ -81,7 +114,7 @@ export function PanduanContent() {
                 Navigasi
               </p>
               <ul className="space-y-1">
-                {faqNav.map((item) => (
+                {nav.map((item) => (
                   <li key={item.id}>
                     <button
                       type="button"
@@ -101,16 +134,16 @@ export function PanduanContent() {
             </nav>
 
             <div>
-              {['prosedur', 'lisensi', 'insentif', 'tax'].includes(activeSection) && (
+              {accordionData[activeSection] ? (
                 <div>
                   <h2 className="mb-6 text-xl font-bold text-brand-900">
-                    {faqNav.find((n) => n.id === activeSection)?.label}
+                    {nav.find((n) => n.id === activeSection)?.label}
                   </h2>
                   <Accordion items={accordionData[activeSection] ?? []} />
                 </div>
-              )}
+              ) : null}
 
-              {activeSection === 'privasi' && (
+              {showStaticExtras && activeSection === 'privasi' && (
                 <div>
                   <h2 className="mb-6 text-xl font-bold text-brand-900">Kebijakan Privasi</h2>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -129,7 +162,7 @@ export function PanduanContent() {
                 </div>
               )}
 
-              {activeSection === 'layanan' && (
+              {showStaticExtras && activeSection === 'layanan' && (
                 <div>
                   <h2 className="mb-6 text-xl font-bold text-brand-900">Layanan Bantuan</h2>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -161,13 +194,6 @@ export function PanduanContent() {
           </div>
         </Container>
       </section>
-
-      <CtaBanner
-        title="Siap Berinvestasi?"
-        description="Ajukan Letter of Intent Anda sekarang dan mulai perjalanan investasi di Jawa Tengah."
-        buttonLabel="Ajukan Kepeminatan"
-        buttonHref="/kepeminatan"
-      />
     </>
   )
 }

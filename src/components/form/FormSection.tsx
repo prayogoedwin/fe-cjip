@@ -24,16 +24,24 @@ export function FormSection({
 
 export function FormField({
   label,
+  name,
   placeholder,
   required = false,
   type = 'text',
   multiline = false,
+  value,
+  onChange,
+  accept,
 }: {
   label: string
+  name?: string
   placeholder?: string
   required?: boolean
   type?: string
   multiline?: boolean
+  value?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
+  accept?: string
 }) {
   return (
     <div className="min-w-0 space-y-1.5">
@@ -43,16 +51,23 @@ export function FormField({
       </label>
       {multiline ? (
         <textarea
+          name={name}
           rows={3}
           placeholder={placeholder}
           required={required}
+          value={value}
+          onChange={onChange}
           className={`${inputClass} resize-y`}
         />
       ) : (
         <input
           type={type}
+          name={name}
           placeholder={placeholder}
           required={required}
+          value={value}
+          onChange={onChange}
+          accept={accept}
           className={inputClass}
         />
       )}

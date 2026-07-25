@@ -27,4 +27,31 @@ body {
   color: var(--text-main);
   font-size: 15px;
   line-height: 1.6;
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Google Translate — sembunyikan banner & widget bawaan */
+.goog-te-banner-frame,
+.skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-gadget,
+.goog-te-menu-value {
+  display: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+iframe.goog-te-banner-frame,
+iframe.goog-te-menu-frame {
+  display: none !important;
+  visibility: hidden !important;
 }

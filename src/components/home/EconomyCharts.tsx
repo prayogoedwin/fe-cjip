@@ -15,6 +15,7 @@ import {
 import { Bar, Line } from 'react-chartjs-2'
 import { Container } from '@/components/ui/Container'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import type { ApiBerandaPayload } from '@/lib/api'
 
 ChartJS.register(
   CategoryScale,
@@ -28,7 +29,7 @@ ChartJS.register(
   Filler,
 )
 
-const pertumbuhanData = {
+const defaultPertumbuhanData = {
   labels: ['2020', '2021', '2022', '2023', '2024'],
   datasets: [
     {
@@ -50,7 +51,7 @@ const pertumbuhanData = {
   ],
 }
 
-const investasiData = {
+const defaultInvestasiData = {
   labels: ['2020', '2021', '2022', '2023', '2024'],
   datasets: [
     {
@@ -85,19 +86,62 @@ const chartOptions = {
   },
 }
 
-export function EconomyCharts() {
+export function EconomyCharts({ grafik }: { grafik?: ApiBerandaPayload['grafik'] }) {
+  const pe = grafik?.pertumbuhan_ekonomi
+  const pi = grafik?.performa_investasi
+
+  const pertumbuhanData = pe?.chart
+    ? {
+        labels: pe.chart.labels.map(String),
+        datasets: [
+          {
+            ...defaultPertumbuhanData.datasets[0],
+            data: pe.chart.jateng,
+          },
+          {
+            ...defaultPertumbuhanData.datasets[1],
+            data: pe.chart.nasional,
+          },
+        ],
+      }
+    : defaultPertumbuhanData
+
+  const investasiData = pi?.chart
+    ? {
+        labels: pi.chart.labels.map(String),
+        datasets: [
+          {
+            ...defaultInvestasiData.datasets[0],
+            data: pi.chart.target,
+          },
+          {
+            ...defaultInvestasiData.datasets[1],
+            data: pi.chart.realisasi,
+          },
+        ],
+      }
+    : defaultInvestasiData
+
+  const peTitle = pe?.section?.title || 'Pertumbuhan Ekonomi'
+  const peDesc =
+    pe?.section?.desc ||
+    'Pada tahun 2024, perekonomian Jawa Tengah mencatatkan pertumbuhan sebesar 4,95% (year-on-year), menunjukkan ketahanan ekonomi yang solid di tengah tantangan global.'
+  const piTitle = pi?.section?.title || 'Performa Investasi'
+  const piDesc =
+    pi?.section?.desc ||
+    'Jawa Tengah mencatatkan prestasi luar biasa di tahun 2024 dengan total realisasi investasi mencapai Rp88,44 triliun, melampaui target yang ditetapkan.'
+
   return (
     <section className="bg-white px-6 py-16">
       <Container>
         <SectionHeader label="Ekonomi" title="Performa Ekonomi & Investasi" />
         <div className="mb-14 grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <h3 className="mb-3 text-xl font-bold text-brand-900">Pertumbuhan Ekonomi</h3>
-            <p className="text-[0.88rem] leading-relaxed text-content-muted">
-              Pada tahun 2024, perekonomian Jawa Tengah mencatatkan pertumbuhan sebesar{' '}
-              <strong>4,95%</strong> (year-on-year), menunjukkan ketahanan ekonomi yang solid di
-              tengah tantangan global.
-            </p>
+            <h3 className="mb-3 text-xl font-bold text-brand-900">{peTitle}</h3>
+            <div
+              className="text-[0.88rem] leading-relaxed text-content-muted [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
+              dangerouslySetInnerHTML={{ __html: peDesc }}
+            />
           </div>
           <div className="rounded-2xl border border-cjip-border bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
             <Bar
@@ -126,11 +170,11 @@ export function EconomyCharts() {
             />
           </div>
           <div className="lg:order-2">
-            <h3 className="mb-3 text-xl font-bold text-brand-900">Performa Investasi</h3>
-            <p className="text-[0.88rem] leading-relaxed text-content-muted">
-              Jawa Tengah mencatatkan prestasi luar biasa di tahun 2024 dengan total realisasi
-              investasi mencapai <strong>Rp88,44 triliun</strong>, melampaui target yang ditetapkan.
-            </p>
+            <h3 className="mb-3 text-xl font-bold text-brand-900">{piTitle}</h3>
+            <div
+              className="text-[0.88rem] leading-relaxed text-content-muted [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
+              dangerouslySetInnerHTML={{ __html: piDesc }}
+            />
           </div>
         </div>
       </Container>

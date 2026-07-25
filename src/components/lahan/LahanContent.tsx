@@ -1,145 +1,226 @@
 'use client'
-
-import { useState } from 'react'
-import { PageHero } from '@/components/ui/PageHero'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 import { Container } from '@/components/ui/Container'
 import { Pagination } from '@/components/ui/Pagination'
-import { CtaBanner } from '@/components/layout/CtaBanner'
+import { SafeImage } from '@/components/ui/SafeImage'
+import { LahanSearchBar } from '@/components/lahan/LahanSearchBar'
+import { fetchLahanList } from '@/lib/api'
+import { type LahanItem, type LahanStatus } from '@/lib/lahan-data'
 
-const kabkotaOptions = [
-  'Semua Kabupaten/Kota',
-  'Kota Semarang',
-  'Kabupaten Kendal',
-  'Kabupaten Batang',
-  'Kabupaten Demak',
-  'Kabupaten Kudus',
-]
+const STATUS_RIBBON: Record<LahanStatus, string> = {
+  Tersedia: 'bg-brand-500',
+  Tersewa: 'bg-red-600',
+  Terjual: 'bg-red-600',
+}
 
-const assetSamples = [
-  { id: 1, nama: 'Lahan Industri Sayung', luas: '5 Ha', status: 'Siap Pakai', peruntukan: 'Industri', lokasi: 'Kabupaten Demak', tags: ['Industri'] },
-  { id: 2, nama: 'Kavling Agro Semarang', luas: '12 Ha', status: 'Tersedia', peruntukan: 'Agro', lokasi: 'Kabupaten Semarang', tags: ['Agro'] },
-  { id: 3, nama: 'Tanah Komersial Solo', luas: '2 Ha', status: 'Siap Pakai', peruntukan: 'Komersial', lokasi: 'Kota Surakarta', tags: ['Komersial'] },
-  { id: 4, nama: 'Lahan Energi Batang', luas: '20 Ha', status: 'Tersedia', peruntukan: 'Energi', lokasi: 'Kabupaten Batang', tags: ['Energi'] },
-  { id: 5, nama: 'Kavling Industri Kendal', luas: '8 Ha', status: 'Siap Pakai', peruntukan: 'Industri', lokasi: 'Kabupaten Kendal', tags: ['Industri'] },
-  { id: 6, nama: 'Lahan Pariwisata Magelang', luas: '3 Ha', status: 'Tersedia', peruntukan: 'Pariwisata', lokasi: 'Kabupaten Magelang', tags: ['Pariwisata'] },
-]
-
-export function LahanContent() {
-  const [selectedKab, setSelectedKab] = useState('Semua Kabupaten/Kota')
-
+function LahanCard({ item }: { item: LahanItem }) {
   return (
-    <>
-      <div className="mt-[68px] bg-gradient-to-br from-brand-900 to-brand-600 px-6 py-14 text-center text-white">
-        <p className="mb-2 text-sm font-bold tracking-widest text-amber-400 uppercase">BUHANSIP</p>
-        <h1 className="text-3xl font-bold md:text-4xl">Lahan Siap Pakai</h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-white/80">
-          Basis Data Unit Hak Atas Nasib Sertifikat Investasi Provinsi Jawa Tengah
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {['Terintegrasi', 'Transparan', 'Real-time'].map((badge) => (
-            <span key={badge} className="rounded-full border border-white/30 px-3 py-1 text-xs">
-              {badge}
-            </span>
-          ))}
+    <article className="group overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm transition duration-500 hover:-translate-y-2 hover:shadow-2xl">
+      <div className="relative h-64 overflow-hidden bg-brand-50">
+        <SafeImage
+          src={item.thumbnail}
+          alt={item.nama}
+          fill
+          className="object-cover transition duration-700 group-hover:scale-110"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
+        <div
+          className={`absolute top-[1.1rem] left-[-3.1rem] z-10 w-[11rem] -rotate-45 py-1.5 text-center text-[0.7rem] font-extrabold tracking-widest text-white uppercase shadow-md ${STATUS_RIBBON[item.status]}`}
+        >
+          {item.status}
         </div>
       </div>
 
-      <div className="border-b border-brand-100 bg-white px-6 py-6">
+      <div className="p-6 md:p-8">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <svg className="h-4 w-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          {item.skema.map((s) => (
+            <span
+              key={s}
+              className="rounded-md border border-brand-100 bg-brand-50 px-2 py-0.5 text-[10px] font-black tracking-widest text-brand-700 uppercase"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+
+        <h3 className="mb-2 line-clamp-2 text-xl font-bold text-brand-900 transition duration-300 group-hover:text-brand-500">
+          {item.nama}
+        </h3>
+        <div className="mb-6 flex items-center text-sm text-neutral-500">
+          <svg className="mr-1 h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {item.wilayah}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-brand-50 pt-6">
+          <div>
+            <span className="text-xs font-bold tracking-tight text-neutral-400 uppercase">Luas Lahan</span>
+            <p className="text-lg font-black text-brand-900">
+              {item.luas} <small className="text-sm font-normal text-neutral-500">m²</small>
+            </p>
+          </div>
+          <Link
+            href={`/lahan-siap-pakai/${item.slug}`}
+            className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-900 transition duration-300 group-hover:bg-brand-500 group-hover:text-white"
+            aria-label={`Detail ${item.nama}`}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+interface LahanContentProps {
+  initialData?: LahanItem[]
+}
+
+export function LahanContent({ initialData }: LahanContentProps) {
+  const [items, setItems] = useState<LahanItem[]>(initialData ?? [])
+  const [loading, setLoading] = useState(false)
+  const [query, setQuery] = useState('')
+  const [wilayah, setWilayah] = useState('')
+  const [skema, setSkema] = useState('')
+  const [status, setStatus] = useState('')
+
+  const runSearch = useCallback(async (params: {
+    q?: string
+    wilayah?: string
+    skema?: string
+    status?: string
+  }) => {
+    setLoading(true)
+    try {
+      const { data } = await fetchLahanList({
+        q: params.q || undefined,
+        wilayah: params.wilayah || undefined,
+        skema: params.skema || undefined,
+        status: params.status || undefined,
+        perPage: 50,
+      })
+      setItems(data)
+    } catch {
+      setItems([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!initialData?.length) {
+      void runSearch({})
+    }
+  }, [initialData, runSearch])
+
+  function handleSearch() {
+    void runSearch({ q: query, wilayah, skema, status })
+  }
+
+  return (
+    <>
+      <div className="relative mt-[68px] overflow-hidden bg-brand-900 py-16 md:py-24">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+          }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-900 via-brand-900/90 to-transparent" />
+
         <Container>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {[
-              { value: '156', label: 'Total Lahan' },
-              { value: '2.450 Ha', label: 'Total Luas' },
-              { value: '28', label: 'Kab/Kota' },
-              { value: '89', label: 'Siap Pakai' },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-brand-100 p-4 text-center">
-                <p className="text-2xl font-bold text-brand-500">{stat.value}</p>
-                <p className="text-xs text-neutral-500">{stat.label}</p>
+          <div className="relative z-10 grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <span className="rounded-lg border border-brand-500/30 bg-brand-500/20 px-3 py-1 text-xs font-black tracking-[0.2em] text-white uppercase backdrop-blur-sm">
+                  BUHANSIP
+                </span>
+                <span className="text-xs font-medium tracking-wider text-white/60 uppercase">
+                  Butuh Lahan Siap Pakai
+                </span>
               </div>
-            ))}
+              <h1 className="mb-6 text-3xl leading-tight font-extrabold text-white md:text-5xl">
+                Temukan Peluang
+                <br />
+                <span className="bg-gradient-to-r from-brand-100 to-emerald-300 bg-clip-text text-transparent">
+                  Investasi Lahan Strategis
+                </span>
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-white/75 md:text-lg">
+                Melalui fitur <strong className="text-white">BUHANSIP</strong>, akses data lahan siap pakai
+                yang telah terverifikasi untuk mendukung percepatan pembangunan dan investasi di Jawa Tengah.
+              </p>
+            </div>
+
+            <div className="hidden justify-center lg:flex">
+              <div className="grid w-full max-w-md grid-cols-2 gap-4">
+                <div className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-md transition duration-500 hover:rotate-0 -rotate-3">
+                  <p className="text-2xl font-black tracking-tight text-white">Terverifikasi</p>
+                  <p className="mt-1 text-xs font-bold tracking-widest text-white/60 uppercase">Data Akurat</p>
+                </div>
+                <div className="translate-y-8 rotate-6 rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-md transition duration-500 hover:rotate-0">
+                  <p className="text-2xl font-black tracking-tight text-white">Strategis</p>
+                  <p className="mt-1 text-xs font-bold tracking-widest text-white/60 uppercase">Lokasi Pilihan</p>
+                </div>
+              </div>
+            </div>
           </div>
         </Container>
       </div>
 
-      <section className="px-6 py-12">
+      <div className="relative z-20 -mt-10 px-6 md:-mt-12">
         <Container>
-          <div className="mb-8 flex flex-col gap-3 rounded-xl border border-brand-100 bg-brand-50 p-5 md:flex-row md:items-end">
-            <div className="flex-1">
-              <label className="mb-1 block text-sm font-medium text-brand-900">
-                Kabupaten/Kota
-              </label>
-              <select
-                value={selectedKab}
-                onChange={(e) => setSelectedKab(e.target.value)}
-                className="w-full rounded-lg border border-brand-100 px-4 py-2.5 text-sm"
-              >
-                {kabkotaOptions.map((opt) => (
-                  <option key={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white transition duration-300 hover:bg-brand-600"
-            >
-              Cari Lahan
-            </button>
+          <LahanSearchBar
+            query={query}
+            wilayah={wilayah}
+            skema={skema}
+            status={status}
+            onQueryChange={setQuery}
+            onWilayahChange={setWilayah}
+            onSkemaChange={setSkema}
+            onStatusChange={setStatus}
+            onSearch={handleSearch}
+          />
+        </Container>
+      </div>
+
+      <section className="bg-brand-50/40 px-6 pb-16 pt-12 md:pt-16">
+        <Container>
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-brand-900">Aset Tersedia</h2>
+            <p className="text-neutral-500">
+              {loading ? 'Memuat...' : `Menampilkan ${items.length} lokasi strategis`}
+            </p>
           </div>
 
-          {selectedKab === 'Semua Kabupaten/Kota' ? (
-            <div className="rounded-xl border border-dashed border-brand-200 bg-brand-50 py-16 text-center">
-              <p className="text-4xl" aria-hidden="true">🗺️</p>
-              <p className="mt-3 font-medium text-brand-900">Pilih kabupaten/kota untuk melihat lahan</p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Gunakan filter di atas untuk menampilkan data lahan siap pakai
+          {items.length === 0 ? (
+            <div className="rounded-3xl border border-brand-100 bg-white py-12 text-center shadow-sm">
+              <p className="font-medium text-neutral-400">
+                Aset lahan tidak ditemukan untuk kategori filter ini.
               </p>
             </div>
           ) : (
             <>
-              <p className="mb-4 text-sm text-neutral-500">Menampilkan {assetSamples.length} lahan di {selectedKab}</p>
-              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {assetSamples.map((asset) => (
-                  <article
-                    key={asset.id}
-                    className="overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm"
-                  >
-                    <div className="flex h-36 items-center justify-center bg-brand-50 text-4xl">🏞️</div>
-                    <div className="p-4">
-                      <div className="mb-2 flex flex-wrap gap-1">
-                        {asset.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <h4 className="mb-2 font-semibold text-brand-900">{asset.nama}</h4>
-                      <div className="mb-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">
-                        <span>📐 {asset.luas}</span>
-                        <span>✅ {asset.status}</span>
-                        <span>📋 {asset.peruntukan}</span>
-                        <span>📍 {asset.lokasi}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-brand-50 px-4 py-3">
-                      <span className="text-xs text-neutral-500">{asset.lokasi}</span>
-                      <a href="#" className="text-sm font-medium text-brand-500">
-                        Detail →
-                      </a>
-                    </div>
-                  </article>
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {items.map((item) => (
+                  <LahanCard key={item.id} item={item} />
                 ))}
               </div>
-              <Pagination totalPages={3} />
+              <Pagination totalPages={1} />
             </>
           )}
         </Container>
       </section>
-
-      <CtaBanner />
     </>
   )
 }

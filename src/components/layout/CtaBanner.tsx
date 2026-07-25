@@ -14,21 +14,29 @@ export function CtaBanner({
   buttonHref = '/peluang-investasi',
 }: CtaBannerProps) {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 to-brand-500 px-6 py-16 text-center">
+    <section className="relative overflow-hidden px-6 py-20 text-center sm:py-24">
       <div
-        className="absolute inset-0 bg-[url('https://cjip.jatengprov.go.id/images/banner.jpg')] bg-cover bg-center opacity-15"
+        className="absolute inset-0 bg-[url('https://cjip.jatengprov.go.id/images/banner.jpg')] bg-cover bg-center"
         aria-hidden="true"
       />
-      <div className="relative">
-        <h3 className="text-[clamp(1.4rem,3vw,2rem)] font-bold text-white">{title}</h3>
-        <p className="mx-auto mt-3 max-w-[520px] text-[0.95rem] text-white/80">{description}</p>
+      <div className="absolute inset-0 bg-[#0b1f14]/75" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-transparent to-brand-900/40" aria-hidden="true" />
+
+      <div className="relative mx-auto max-w-3xl">
+        <h3 className="text-[clamp(1.5rem,3.5vw,2.35rem)] font-extrabold tracking-wide text-white uppercase">
+          {title}
+        </h3>
+        <p className="mx-auto mt-4 max-w-[540px] text-[0.95rem] leading-relaxed text-white/85">
+          {description}
+        </p>
         <Link
           href={buttonHref}
-          className="mt-6 inline-block rounded-lg bg-white px-8 py-3 text-[0.9rem] font-bold text-brand-900 transition duration-300 hover:-translate-y-0.5 hover:bg-brand-50"
+          className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand-500 px-8 py-3.5 text-[0.92rem] font-bold text-white shadow-[0_8px_24px_rgba(26,99,36,0.35)] transition duration-300 hover:-translate-y-0.5 hover:bg-brand-600"
         >
           {buttonLabel}
+          <span aria-hidden="true">→</span>
         </Link>
       </div>
-    </div>
+    </section>
   )
 }

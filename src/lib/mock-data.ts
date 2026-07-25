@@ -1,4 +1,7 @@
-import type { Berita, Sektor, KawasanIndustri, PeluangInvestasi } from '@/types'
+import type { Berita, Sektor, PeluangInvestasi } from '@/types'
+import { mockKawasan } from '@/lib/kawasan-data'
+
+export { mockKawasan }
 
 export const mockBerita: Berita[] = [
   {
@@ -68,72 +71,6 @@ export const mockSektor: Sektor[] = [
   { id: 4, nama: 'Pertanian', icon: '🌾', total: 87 },
   { id: 5, nama: 'Properti', icon: '🏢', total: 55 },
   { id: 6, nama: 'Energi', icon: '⚡', total: 33 },
-]
-
-export const mockKawasan: KawasanIndustri[] = [
-  {
-    id: 1,
-    nama: 'KEK Kendal',
-    lokasi: 'Kendal',
-    luas: '2.200 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1565793979894-5e7d3ea92e72?w=800&q=80',
-    badge: 'KEK',
-    kepemilikan: 'Pemerintah',
-    deskripsi:
-      'Kawasan Ekonomi Khusus Kendal merupakan kawasan industri terintegrasi dengan fasilitas pelabuhan dan infrastruktur lengkap.',
-  },
-  {
-    id: 2,
-    nama: 'Kawasan Industri Wijayakusuma',
-    lokasi: 'Semarang',
-    luas: '245 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
-    badge: 'BUMN',
-    kepemilikan: 'PT Kawasan Industri Wijayakusuma',
-    deskripsi:
-      'BUMN pengembang kawasan industri terbaik dengan lahan siap bangun, lokasi strategis dekat tol, pelabuhan, dan bandara.',
-  },
-  {
-    id: 3,
-    nama: 'Grand Batang City',
-    lokasi: 'Batang',
-    luas: '4.300 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80',
-    badge: 'KEK',
-    kepemilikan: 'Konsorsium',
-    deskripsi:
-      'Kawasan Industri Terpadu Batang, konsorsium antara PT PP, PT KIW, PT Perkebunan Nusantara IX, dan Perumda Aneka Usaha Batang.',
-  },
-  {
-    id: 4,
-    nama: 'Jatengland Industrial Park Sayung',
-    lokasi: 'Demak',
-    luas: '500 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f51?w=800&q=80',
-    badge: 'Swasta',
-    kepemilikan: 'Mugan Group',
-    deskripsi: 'Pengembang dan pengelola kawasan industri JIPS, anak perusahaan Mugan Group.',
-  },
-  {
-    id: 5,
-    nama: 'Kawasan Industri Candi',
-    lokasi: 'Semarang',
-    luas: '120 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80',
-    badge: 'Swasta',
-    kepemilikan: 'Swasta',
-    deskripsi: 'Kawasan industri strategis di wilayah Semarang dengan akses logistik yang memadai.',
-  },
-  {
-    id: 6,
-    nama: 'Kawasan Industri Terboyo',
-    lokasi: 'Semarang',
-    luas: '85 Ha',
-    thumbnail: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
-    badge: 'Swasta',
-    kepemilikan: 'Swasta',
-    deskripsi: 'Kawasan industri dekat pelabuhan Tanjung Emas, ideal untuk industri pengolahan dan logistik.',
-  },
 ]
 
 export const mockPeluang: PeluangInvestasi[] = [
