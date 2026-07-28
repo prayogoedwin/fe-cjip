@@ -14,13 +14,25 @@ interface WhyInvestSectionProps {
   }
 }
 
+function toHtmlDesc(desc: string): string {
+  if (/<[a-z][\s\S]*>/i.test(desc)) {
+    return desc
+  }
+
+  return desc
+    .split(/\n\n+/)
+    .filter(Boolean)
+    .map((p) => `<p>${p}</p>`)
+    .join('')
+}
+
 export function WhyInvestSection({ opening }: WhyInvestSectionProps) {
   const title = opening?.title || 'Mengapa Berinvestasi Di Jawa Tengah?'
   const desc =
     opening?.desc ||
     'Jawa Tengah menawarkan iklim investasi yang kondusif dengan pertumbuhan ekonomi yang positif, infrastruktur yang terus berkembang, serta biaya tenaga kerja yang kompetitif.\n\nDidukung masyarakat yang ramah dan etos kerja tinggi, Jawa Tengah menjadi pilihan strategis bagi investor yang ingin tumbuh bersama wilayah penuh potensi.\n\nTahun 2025, UMK berkisar antara Rp 2.170.475 (Banjarnegara) hingga Rp 3.454.827 (Kota Semarang), memberikan fleksibilitas biaya produksi.'
   const image = resolveImageUrl(opening?.image) || DEFAULT_IMAGE
-  const paragraphs = desc.split(/\n\n+/).filter(Boolean)
+  const descHtml = toHtmlDesc(desc)
 
   return (
     <section className="px-6 py-16">
@@ -38,11 +50,10 @@ export function WhyInvestSection({ opening }: WhyInvestSectionProps) {
           <div>
             <SectionLabel>Mengapa Jawa Tengah?</SectionLabel>
             <h2 className="mb-4 text-[clamp(1.4rem,3vw,2rem)] font-bold text-brand-900">{title}</h2>
-            {paragraphs.map((p) => (
-              <p key={p.slice(0, 48)} className="mb-4 text-[0.95rem] leading-relaxed text-content-muted">
-                {p}
-              </p>
-            ))}
+            <div
+              className="text-[0.95rem] leading-relaxed text-content-muted [&_p]:mb-4 [&_p:last-child]:mb-0"
+              dangerouslySetInnerHTML={{ __html: descHtml }}
+            />
             <div className="mt-6 flex flex-wrap gap-4">
               {[
                 { value: 'Rp 88,44 T', label: 'Realisasi Investasi 2024' },

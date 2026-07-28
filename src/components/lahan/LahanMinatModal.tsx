@@ -150,7 +150,7 @@ export function LahanMinatModal({ lahan, open, onClose }: LahanMinatModalProps) 
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={!turnstileToken || loading}
                 className="flex w-full items-center justify-center gap-3 rounded-[2rem] bg-brand-900 py-5 text-sm font-black text-white shadow-xl transition hover:bg-brand-500 active:scale-95 disabled:opacity-60"
               >
                 {loading ? 'MEMPROSES...' : 'KIRIM MINAT SEKARANG'}

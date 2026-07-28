@@ -3,10 +3,14 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { FormField, FormSection } from '@/components/form/FormSection'
 import { inputClass, selectClass } from '@/components/form/form-styles'
 import { submitKepeminatan } from '@/lib/api'
 import { ApiError } from '@/lib/api/client'
+
+const TURNSTILE_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'
 
 const steps = [
   { num: 1, label: 'Detail Kontak' },
@@ -69,6 +73,7 @@ function formatApiError(err: unknown): string {
 export function KepeminatanForm() {
   const [projectType, setProjectType] = useState<'greenfield' | 'brownfield'>('greenfield')
   const [currency, setCurrency] = useState<'usd' | 'rupiah'>('usd')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -77,6 +82,12 @@ export function KepeminatanForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+
+    if (!turnstileToken) {
+      setError('Silakan selesaikan verifikasi terlebih dahulu.')
+      return
+    }
+
     setLoading(true)
 
     const form = e.currentTarget
@@ -98,6 +109,7 @@ export function KepeminatanForm() {
       jadwal_proyek: String(fd.get('jadwal_proyek') ?? '').trim(),
       jadwal_selesai: String(fd.get('jadwal_selesai') ?? '').trim() || undefined,
       other_information: String(fd.get('other_information') ?? '').trim() || undefined,
+      turnstile_token: turnstileToken,
     }
 
     try {
@@ -107,8 +119,10 @@ export function KepeminatanForm() {
       form.reset()
       setProjectType('greenfield')
       setCurrency('usd')
+      setTurnstileToken(null)
     } catch (err) {
       setError(formatApiError(err))
+      setTurnstileToken(null)
     } finally {
       setLoading(false)
     }
@@ -329,6 +343,29 @@ export function KepeminatanForm() {
               </div>
             </FormSection>
 
+            <div className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
+              <label className="mb-1 block text-sm font-medium text-neutral-700">
+                Verifikasi <span className="text-red-500">*</span>
+              </label>
+              <p className="mb-3 text-xs text-neutral-500">
+                Centang kotak di bawah untuk konfirmasi bahwa Anda bukan robot.
+              </p>
+              <Turnstile
+                siteKey={TURNSTILE_SITE_KEY}
+                options={{
+                  theme: 'light',
+                  size: 'normal',
+                  appearance: 'always',
+                }}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setError('')
+                }}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => setTurnstileToken(null)}
+              />
+            </div>
+
             <p className="text-xs text-neutral-500">
               <span className="text-red-500">*</span> Wajib diisi
             </p>
@@ -346,7 +383,7 @@ export function KepeminatanForm() {
               </Link>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={!turnstileToken || loading}
                 className="flex-1 rounded-lg bg-brand-500 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? 'Mengirim...' : 'Simpan'}
