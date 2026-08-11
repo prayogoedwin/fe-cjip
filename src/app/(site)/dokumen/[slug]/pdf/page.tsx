@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!res?.data) {
     return createPageMetadata('Dokumen PDF', 'Publikasi investasi Jawa Tengah')
   }
-  return createPageMetadata(res.data.title, res.data.excerpt ?? undefined)
+  return createPageMetadata(res.data.title, res.data.excerpt ?? '')
 }
 
 export default async function DokumenPdfPage({ params }: PageProps) {

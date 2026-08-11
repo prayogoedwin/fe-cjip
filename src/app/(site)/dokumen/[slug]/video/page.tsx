@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!res?.data) {
     return createPageMetadata('Dokumen Video', 'Publikasi investasi Jawa Tengah')
   }
-  return createPageMetadata(res.data.title, res.data.excerpt ?? undefined)
+  return createPageMetadata(res.data.title, res.data.excerpt ?? '')
 }
 
 export default async function DokumenVideoPage({ params }: PageProps) {

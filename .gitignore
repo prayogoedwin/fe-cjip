@@ -20,6 +20,10 @@
 /.cursor/
 /.githooks/
 
+# local AI agent docs (keep on disk, don't push)
+AGENTS.md
+CLAUDE.md
+
 # production
 /build
 
