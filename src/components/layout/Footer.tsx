@@ -5,6 +5,78 @@ import { PartnersCarousel } from '@/components/layout/PartnersCarousel'
 import { fetchFooter } from '@/lib/api'
 import { LOGO_WHITE } from '@/lib/assets'
 
+type IconName = 'pin' | 'mail' | 'phone' | 'youtube' | 'facebook' | 'instagram' | 'twitter' | 'link'
+
+function FooterIcon({ name, className = 'h-4 w-4' }: { name: IconName; className?: string }) {
+  const common = `${className} shrink-0`
+  switch (name) {
+    case 'pin':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z" />
+          <circle cx="12" cy="10" r="2.2" />
+        </svg>
+      )
+    case 'mail':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m4 7 8 6 8-6" />
+        </svg>
+      )
+    case 'phone':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M7 3h4.5A1.5 1.5 0 0 1 13 4.5v15A1.5 1.5 0 0 1 11.5 21H7A1.5 1.5 0 0 1 5.5 19.5v-15A1.5 1.5 0 0 1 7 3Z" />
+          <path d="M8.5 18.5h2" strokeLinecap="round" />
+        </svg>
+      )
+    case 'youtube':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M23 12.2s0-3.2-.4-4.6c-.2-.9-.9-1.6-1.8-1.8C19.2 5.4 12 5.4 12 5.4s-7.2 0-8.8.4c-.9.2-1.6.9-1.8 1.8C1 9 1 12.2 1 12.2s0 3.2.4 4.6c.2.9.9 1.6 1.8 1.8 1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.4.4-4.6.4-4.6ZM9.8 15.6V8.8l6.2 3.4-6.2 3.4Z" />
+        </svg>
+      )
+    case 'facebook':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M14.5 8.5V6.8c0-.7.5-1.3 1.2-1.3H17V3h-2.2C12.3 3 11 4.4 11 6.2v2.3H9v2.7h2V21h3.2v-9.8h2.3l.5-2.7h-2.8Z" />
+        </svg>
+      )
+    case 'instagram':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
+        </svg>
+      )
+    case 'twitter':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M14.2 10.4 22 2h-1.9l-6.7 7.3L8 2H2.2l8.2 11.3L2.2 22H4l7.4-8.1L16.1 22H22l-7.8-11.6Zm-1.3 1.4-.8-1.1L5.1 3.3h2.8l5.2 7.1.8 1.1 6.9 9.3h-2.8l-5.5-7.5Z" />
+        </svg>
+      )
+    default:
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <circle cx="12" cy="12" r="8" />
+          <path d="M8 12h8M12 8l4 4-4 4" />
+        </svg>
+      )
+  }
+}
+
+function socialIcon(label: string, href: string): IconName {
+  const haystack = `${label} ${href}`.toLowerCase()
+  if (haystack.includes('youtube') || haystack.includes('youtu.be')) return 'youtube'
+  if (haystack.includes('facebook')) return 'facebook'
+  if (haystack.includes('instagram')) return 'instagram'
+  if (haystack.includes('twitter') || haystack.includes('x.com')) return 'twitter'
+  if (haystack.includes('mailto') || haystack.includes('email')) return 'mail'
+  return 'link'
+}
+
 const DEFAULT_SOCIALS = [
   { href: 'https://www.youtube.com/channel/UCjAtDv9NUaCo9jNytDZm8hw', label: 'YouTube' },
   { href: 'https://www.facebook.com/dpmptspjateng/', label: 'Facebook' },
@@ -76,19 +148,19 @@ export async function Footer() {
               in Central Java.
             </p>
             <ul className="mt-4 space-y-2 text-sm text-white/70">
-              <li className="flex gap-2">
-                <span aria-hidden="true">📍</span>
-                {alamat}
+              <li className="flex items-start gap-2">
+                <FooterIcon name="pin" className="mt-0.5 h-4 w-4 text-white/80" />
+                <span>{alamat}</span>
               </li>
-              <li className="flex gap-2">
-                <span aria-hidden="true">✉️</span>
+              <li className="flex items-start gap-2">
+                <FooterIcon name="mail" className="mt-0.5 h-4 w-4 text-white/80" />
                 <a href={`mailto:${email}`} className="transition duration-300 hover:text-white">
                   {email}
                 </a>
               </li>
-              <li className="flex gap-2">
-                <span aria-hidden="true">📱</span>
-                {contact} (WhatsApp Only)
+              <li className="flex items-start gap-2">
+                <FooterIcon name="phone" className="mt-0.5 h-4 w-4 text-white/80" />
+                <span>{contact} (WhatsApp Only)</span>
               </li>
             </ul>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -99,9 +171,10 @@ export async function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={social.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-xs transition duration-300 hover:bg-white/10"
+                  aria-label={social.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/90 transition duration-300 hover:bg-white/10 hover:text-white"
                 >
-                  {social.label[0]}
+                  <FooterIcon name={socialIcon(social.label, social.href)} className="h-3.5 w-3.5" />
                 </a>
               ))}
             </div>

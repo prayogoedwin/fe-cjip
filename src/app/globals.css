@@ -2,6 +2,7 @@
 @config "../../tailwind.config.ts";
 
 :root {
+  --font-inter: Inter, 'Segoe UI', 'Helvetica Neue', Arial, system-ui, sans-serif;
   --green-primary: #1A6324;
   --green-dark: #0A2E0F;
   --green-light: #F8F9F7;

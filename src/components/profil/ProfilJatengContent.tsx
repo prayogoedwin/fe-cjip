@@ -6,8 +6,11 @@ import { Container } from '@/components/ui/Container'
 import { SearchBox } from '@/components/ui/SearchBox'
 import { Pagination } from '@/components/ui/Pagination'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { resolveImageUrl } from '@/lib/images'
 import { PROFIL_IMAGE, PROFIL_STATS } from '@/lib/profil-data'
+
+type ProfilStat = { label: string; value: string }
 
 type ProfilData = {
   intro: { title: string; desc: string; image: string | null }
@@ -33,10 +36,10 @@ type ProfilData = {
 const TARIF_PER_PAGE = 10
 const WILAYAH_PER_PAGE = 8
 
-function StatCards() {
+function StatCards({ stats }: { stats: ProfilStat[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      {PROFIL_STATS.map((stat) => (
+      {stats.map((stat) => (
         <div
           key={stat.label}
           className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm transition duration-300 hover:border-brand-200 hover:shadow-md"
@@ -49,7 +52,13 @@ function StatCards() {
   )
 }
 
-export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
+export function ProfilJatengContent({
+  data,
+  stats,
+}: {
+  data?: ProfilData | null
+  stats?: ProfilStat[]
+}) {
   const [tarifTab, setTarifTab] = useState<'listrik' | 'air'>('listrik')
   const [tarifPage, setTarifPage] = useState(1)
   const [wilayahPage, setWilayahPage] = useState(1)
@@ -128,6 +137,15 @@ export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
     setTarifPage(1)
   }
 
+  const statCards =
+    stats ??
+    (data?.wilayah?.length
+      ? [
+          { label: 'Kabupaten/Kota', value: String(data.wilayah.length) },
+          ...PROFIL_STATS.filter((s) => s.label !== 'Kabupaten/Kota'),
+        ]
+      : [...PROFIL_STATS])
+
   return (
     <>
       <PageHero
@@ -167,15 +185,15 @@ export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
             <div className="lg:col-span-7">
               <h2 className="mb-5 text-2xl font-bold text-brand-900 md:text-3xl">{introTitle}</h2>
               {introDesc ? (
-                <div
+                <SafeHtml
+                  html={introDesc}
                   className="space-y-4 text-[0.95rem] leading-relaxed text-neutral-600 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
-                  dangerouslySetInnerHTML={{ __html: introDesc }}
                 />
               ) : (
                 <p className="text-[0.95rem] text-neutral-400">Data profil kosong</p>
               )}
               <div className="mt-8">
-                <StatCards />
+                <StatCards stats={statCards} />
               </div>
             </div>
           </div>
@@ -187,9 +205,9 @@ export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-6 text-2xl font-bold text-brand-900 md:text-3xl">{sdmTitle}</h2>
             {sdmDesc ? (
-              <div
+              <SafeHtml
+                html={sdmDesc}
                 className="space-y-4 text-[0.95rem] leading-relaxed text-neutral-600 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
-                dangerouslySetInnerHTML={{ __html: sdmDesc }}
               />
             ) : (
               <p className="text-[0.95rem] text-neutral-400">Data SDM kosong</p>
@@ -205,9 +223,9 @@ export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
               <div className="border-b border-white/10 p-8 lg:col-span-4 lg:border-r lg:border-b-0 lg:p-10">
                 <h2 className="text-2xl font-bold text-white md:text-3xl">{biayaTitle}</h2>
                 {biayaDesc ? (
-                  <div
+                  <SafeHtml
+                    html={biayaDesc}
                     className="mt-4 text-sm leading-relaxed text-white/75 [&_p]:mb-2 [&_p:last-child]:mb-0"
-                    dangerouslySetInnerHTML={{ __html: biayaDesc }}
                   />
                 ) : (
                   <p className="mt-4 text-sm text-white/50">Data biaya investasi kosong</p>
@@ -355,9 +373,9 @@ export function ProfilJatengContent({ data }: { data?: ProfilData | null }) {
                       </h3>
                     </div>
                     <div className="p-4">
-                      <div
+                      <SafeHtml
+                        html={region.deskripsi}
                         className="line-clamp-3 text-sm leading-relaxed text-neutral-600 [&_p]:inline"
-                        dangerouslySetInnerHTML={{ __html: region.deskripsi }}
                       />
                       <span className="mt-3 inline-flex items-center text-sm font-semibold text-brand-500 transition duration-300 group-hover:text-brand-600">
                         Selengkapnya →

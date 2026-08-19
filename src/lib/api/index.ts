@@ -1,6 +1,6 @@
 import { apiGet, apiGetSafe, apiPost, apiPostForm, type ApiLocale, type ApiMeta } from '@/lib/api/client'
 import { API_V3 } from '@/lib/api/routes'
-import { resolveImageList, resolveImageUrl } from '@/lib/images'
+import { DEFAULT_IMAGE, resolveImageList, resolveImageUrl } from '@/lib/images'
 import type { Berita, KawasanIndustri, PeluangInvestasi, Sektor } from '@/types'
 import type { LahanItem } from '@/lib/lahan-data'
 
@@ -307,11 +307,27 @@ export interface ApiProyekItem {
   kelistrikan?: string | null
   telekomunikasi?: string | null
   jaringanJalan?: string | null
+  ketersediaanPasar?: string | null
+  fileKajian?: string | null
   foto?: string[]
   urlVideo?: string | null
   lat?: number | null
   lng?: number | null
   kontak?: { nama?: string; email?: string; hp?: string; alamat?: string } | null
+}
+
+export const PROYEK_STATUS_LABEL: Record<PeluangInvestasi['status'], string> = {
+  siap: 'Proyek Siap Ditawarkan',
+  prospektif: 'Proyek Prospektif',
+  potensial: 'Proyek Potensial',
+  strategis: 'Proyek Strategis Nasional',
+}
+
+export const PROYEK_STATUS_CLASS: Record<PeluangInvestasi['status'], string> = {
+  siap: 'text-[#1DB053]',
+  prospektif: 'text-[#498DBF]',
+  potensial: 'text-[#FE1010]',
+  strategis: 'text-[#FF6C00]',
 }
 
 function mapProyek(item: ApiProyekItem): PeluangInvestasi & { slug: string } {
@@ -363,10 +379,17 @@ export async function fetchProyekBySlug(slug: string, lang: ApiLocale = 'id') {
     next: { revalidate: 180 },
   })
   if (!res) return null
+  const fileKajian = res.data.fileKajian
+    ? resolveImageUrl(res.data.fileKajian)
+    : null
   return {
     ...mapProyek(res.data),
     detail: res.data,
     foto: resolveImageList(res.data.foto),
+    fileKajian: fileKajian && fileKajian !== DEFAULT_IMAGE ? fileKajian : null,
+    urlVideo: res.data.urlVideo ?? null,
+    lat: res.data.lat ?? null,
+    lng: res.data.lng ?? null,
   }
 }
 
@@ -673,15 +696,37 @@ export async function fetchProdukBySlug(slug: string, lang: ApiLocale = 'id') {
   }
 }
 
+export function isKabupatenKotaName(nama: string | null | undefined): boolean {
+  if (!nama) return false
+  const n = nama.trim().toLowerCase()
+  return n !== 'jawa tengah' && !n.startsWith('provinsi')
+}
+
 export async function fetchKabKota(lang: ApiLocale = 'id') {
   const res = await apiGetSafe<Array<{ id: number; nama: string; lat: number | null; lng: number | null }>>(
     API_V3.wilayah.kabkota,
     { lang, next: { revalidate: 600 } },
   )
-  return res?.data ?? []
+  return (res?.data ?? []).filter((item) => isKabupatenKotaName(item.nama))
 }
 
 /* ─── Auth / Forms ─── */
+
+export async function registerApi(payload: {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+  turnstile_token?: string
+  device_name?: string
+}) {
+  return apiPost<{
+    token: string
+    token_type: string
+    user: { id: number; name: string; email: string }
+    message?: string
+  }>(API_V3.auth.register, payload)
+}
 
 export async function loginApi(payload: {
   email: string

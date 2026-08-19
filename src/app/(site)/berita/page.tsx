@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
-import { SearchBox } from '@/components/ui/SearchBox'
-import { Pagination } from '@/components/ui/Pagination'
+import { QuerySearchBox } from '@/components/ui/QuerySearchBox'
+import { QueryPagination } from '@/components/ui/QueryPagination'
 import { SafeImage } from '@/components/ui/SafeImage'
 import { createPageMetadata } from '@/lib/page-metadata'
 import { fetchBeritaList, fetchBeritaTags } from '@/lib/api'
@@ -13,18 +14,29 @@ export const metadata: Metadata = createPageMetadata(
   'Ikuti perkembangan terkini seputar investasi dan pembangunan Jawa Tengah',
 )
 
-export default async function BeritaPage() {
+interface PageProps {
+  searchParams: Promise<{ q?: string; kategori?: string; page?: string }>
+}
+
+export default async function BeritaPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const q = params.q?.trim() || undefined
+  const kategori = params.kategori?.trim() || undefined
+  const page = Math.max(1, Number(params.page) || 1)
+
   const [{ data: apiList, meta }, tags] = await Promise.all([
-    fetchBeritaList({ perPage: 12 }),
+    fetchBeritaList({ q, kategori, page, perPage: 12 }),
     fetchBeritaTags(),
   ])
 
   const berita = apiList
-  const featured = berita[0]
-  const list = berita.slice(1)
+  const isFiltered = Boolean(q || kategori)
+  const featured = isFiltered ? null : berita[0]
+  const list = isFiltered ? berita : berita.slice(1)
   const tagList = tags.map((t) => t.nama)
   const total = meta?.total ?? berita.length
   const lastPage = meta?.last_page ?? 1
+  const currentPage = meta?.current_page ?? page
 
   return (
     <>
@@ -39,7 +51,14 @@ export default async function BeritaPage() {
         <Container>
           <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
             <div>
-              <SearchBox placeholder="Cari berita..." className="mb-8" />
+              <Suspense fallback={<div className="mb-8 h-11" />}>
+                <QuerySearchBox
+                  pathname="/berita"
+                  placeholder="Cari berita..."
+                  initialQuery={q ?? ''}
+                  className="mb-8"
+                />
+              </Suspense>
 
               {featured ? (
                 <article className="mb-8 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-sm md:grid md:grid-cols-2">
@@ -70,7 +89,7 @@ export default async function BeritaPage() {
               <div className="space-y-5">
                 {list.length === 0 && !featured ? (
                   <p className="rounded-xl border border-dashed border-brand-200 bg-white px-6 py-16 text-center text-neutral-400">
-                    Data berita kosong
+                    {isFiltered ? 'Tidak ada berita yang cocok dengan pencarian.' : 'Data berita kosong'}
                   </p>
                 ) : null}
                 {list.map((item) => (
@@ -102,10 +121,14 @@ export default async function BeritaPage() {
                 ))}
               </div>
 
-              <Pagination
-                totalPages={lastPage}
-                resultText={`Showing ${berita.length} of ${total} results`}
-              />
+              <Suspense fallback={null}>
+                <QueryPagination
+                  pathname="/berita"
+                  currentPage={currentPage}
+                  totalPages={lastPage}
+                  resultText={`Menampilkan ${berita.length} dari ${total} hasil`}
+                />
+              </Suspense>
             </div>
 
             <aside className="space-y-6">

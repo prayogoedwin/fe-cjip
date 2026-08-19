@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { ProfilJatengContent } from '@/components/profil/ProfilJatengContent'
 import { createPageMetadata } from '@/lib/page-metadata'
-import { fetchProfilJateng } from '@/lib/api'
+import { fetchKabKota, fetchProfilJateng, isKabupatenKotaName } from '@/lib/api'
+import { getServerLocale } from '@/lib/locale'
 
 export const metadata: Metadata = createPageMetadata(
   'Profil Jawa Tengah',
@@ -9,7 +10,23 @@ export const metadata: Metadata = createPageMetadata(
 )
 
 export default async function ProfilJatengPage() {
-  const profil = await fetchProfilJateng()
+  const lang = await getServerLocale()
+  const [profil, kabkota] = await Promise.all([fetchProfilJateng(lang), fetchKabKota(lang)])
 
-  return <ProfilJatengContent data={profil?.data ?? null} />
+  const wilayah = (profil?.data?.wilayah ?? []).filter((w) => isKabupatenKotaName(w.nama))
+  const data = profil?.data ? { ...profil.data, wilayah } : null
+  const kabCount = kabkota.length || wilayah.length || 0
+  const stats =
+    kabCount > 0
+      ? [
+          { label: 'Kabupaten/Kota', value: String(kabCount) },
+          { label: 'Profil Wilayah Aktif', value: String(wilayah.length || kabCount) },
+          {
+            label: 'Referensi Luas',
+            value: '3,25 juta ha',
+          },
+        ]
+      : undefined
+
+  return <ProfilJatengContent data={data} stats={stats} />
 }

@@ -158,9 +158,22 @@ export function PetaInvestasiContent() {
   const [data, setData] = useState<ApiPetaInvestasiPayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [active, setActive] = useState<Set<LayerKey>>(new Set())
   const [busyLayer, setBusyLayer] = useState<LayerKey | null>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const sync = () => setSidebarOpen(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => mapRef.current?.invalidateSize(), 320)
+    return () => window.clearTimeout(timer)
+  }, [sidebarOpen])
 
   const groups: SidebarGroup[] = useMemo(
     () => [
@@ -539,15 +552,26 @@ export function PetaInvestasiContent() {
   }
 
   return (
-    <div className="mt-[68px] flex h-[calc(100vh-68px)]">
+    <div className="relative mt-[68px] flex h-[calc(100vh-68px)]">
+      {sidebarOpen ? (
+        <button
+          type="button"
+          aria-label="Tutup menu layer"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-x-0 top-[68px] bottom-0 z-[850] bg-black/40 lg:hidden"
+        />
+      ) : null}
+
       <aside
-        className={`${
-          sidebarOpen ? 'w-72' : 'w-0'
-        } shrink-0 overflow-hidden border-r border-brand-100 bg-white transition-all duration-300`}
+        className={`z-[900] flex h-full flex-col border-r border-brand-100 bg-white shadow-xl transition-transform duration-300 lg:relative lg:shadow-none lg:transition-[width] ${
+          sidebarOpen
+            ? 'w-[min(18rem,86vw)] translate-x-0'
+            : 'w-0 -translate-x-full lg:translate-x-0'
+        } fixed top-[68px] left-0 overflow-hidden lg:static lg:shrink-0`}
       >
-        <div className="flex h-full w-72 flex-col">
+        <div className="flex h-full w-[min(18rem,86vw)] flex-col lg:w-72">
           <div className="border-b border-gray-100 px-4 py-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <Image
                 src="https://cjip.jatengprov.go.id/images/cjip.png"
                 alt="CJIP"
@@ -555,9 +579,19 @@ export function PetaInvestasiContent() {
                 height={36}
                 className="h-9 w-9 shrink-0"
               />
-              <div>
+              <div className="min-w-0 flex-1">
                 <h2 className="text-base font-bold text-gray-900">Peta Investasi Jawa Tengah</h2>
               </div>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                aria-label="Tutup menu peta"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
             </div>
           </div>
 

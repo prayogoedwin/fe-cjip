@@ -1,3 +1,5 @@
+import { sanitizeJsonLd } from '@/lib/sanitize-html'
+
 export function OrganizationJsonLd() {
     const data = {
       '@context': 'https://schema.org',
@@ -9,7 +11,7 @@ export function OrganizationJsonLd() {
     return (
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(data) }}
       />
     )
   }
@@ -35,7 +37,7 @@ export function OrganizationJsonLd() {
     return (
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(data) }}
       />
     )
   }
