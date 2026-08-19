@@ -8,7 +8,10 @@ import {
 } from '@/lib/google-translate'
 import { getLanguageByCode, LANGUAGES, type LanguageCode } from '@/lib/languages'
 
-/** Self-contained language menu — loads Translate only when needed. */
+/**
+ * Sama seperti production server: ID / EN / CN semua lewat Google Translate.
+ * EN cepat (ganti combo tanpa reload); CN reload hanya jika widget belum siap.
+ */
 export function LanguageSwitcher() {
   const [currentLang, setCurrentLang] = useState<LanguageCode>('id')
   const [isOpen, setIsOpen] = useState(false)

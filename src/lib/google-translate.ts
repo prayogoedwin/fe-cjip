@@ -1,5 +1,6 @@
 import type { LanguageCode } from '@/lib/languages'
 import { LANGUAGES } from '@/lib/languages'
+import { clientCookieSecureSuffix } from '@/lib/client-cookies'
 
 const COOKIE_NAME = 'googtrans'
 const SCRIPT_ID = 'google-translate-script'
@@ -35,28 +36,34 @@ export function getGoogleTranslateLanguage(): LanguageCode {
   return 'id'
 }
 
-function setTranslateCookie(lang: LanguageCode) {
-  const cookieValue = lang === 'id' ? '/id/id' : `/id/${lang}`
-  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()
-
-  document.cookie = `${COOKIE_NAME}=${cookieValue}; path=/; expires=${expires}`
-  document.cookie = `${COOKIE_NAME}=${cookieValue}; path=/; domain=${window.location.hostname}; expires=${expires}`
+/** EN/CN from googtrans cookie (Google Translate). */
+export function getActiveTranslateLanguage(): LanguageCode {
+  return getGoogleTranslateLanguage()
 }
 
-function ensureTranslateElementMount() {
-  if (document.getElementById('google_translate_element')) return
-  const el = document.createElement('div')
-  el.id = 'google_translate_element'
-  el.className = 'hidden'
-  el.setAttribute('aria-hidden', 'true')
-  document.body.appendChild(el)
+export function setTranslateCookie(lang: LanguageCode) {
+  if (typeof document === 'undefined') return
+
+  const cookieValue = lang === 'id' ? '/id/id' : `/id/${lang}`
+  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()
+  const secure = clientCookieSecureSuffix()
+
+  document.cookie = `${COOKIE_NAME}=${cookieValue}; path=/; expires=${expires}; SameSite=Lax${secure}`
+  document.cookie = `${COOKIE_NAME}=${cookieValue}; path=/; domain=${window.location.hostname}; expires=${expires}; SameSite=Lax${secure}`
+}
+
+export function clearTranslateCookie() {
+  if (typeof document === 'undefined') return
+  document.cookie = `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+  document.cookie = `${COOKIE_NAME}=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`
 }
 
 function initTranslateElement() {
   if (!window.google?.translate?.TranslateElement) return
   if (document.querySelector('.goog-te-combo')) return
 
-  ensureTranslateElementMount()
+  const mount = document.getElementById('google_translate_element')
+  if (!mount) return
 
   const TranslateElement = window.google.translate.TranslateElement as typeof window.google.translate.TranslateElement & {
     InlineLayout?: { SIMPLE: number }
@@ -73,24 +80,23 @@ function initTranslateElement() {
   )
 }
 
-/** Load Google Translate only when needed (language switch / non-ID cookie). */
+/** Load Google Translate widget (reads googtrans cookie on init). */
 export function ensureGoogleTranslateLoaded(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve()
 
-  if (document.querySelector('.goog-te-combo')) {
+  if (document.querySelector('.goog-te-combo') && window.google?.translate?.TranslateElement) {
     return Promise.resolve()
   }
 
   if (loadPromise) return loadPromise
 
   loadPromise = new Promise((resolve, reject) => {
-    ensureTranslateElementMount()
-
     window[INIT_FN] = () => {
       try {
         initTranslateElement()
         resolve()
       } catch (error) {
+        loadPromise = null
         reject(error)
       }
     }
@@ -99,6 +105,16 @@ export function ensureGoogleTranslateLoaded(): Promise<void> {
     if (existing) {
       if (window.google?.translate?.TranslateElement) {
         window[INIT_FN]?.()
+      } else {
+        existing.addEventListener('load', () => window[INIT_FN]?.(), { once: true })
+        existing.addEventListener(
+          'error',
+          () => {
+            loadPromise = null
+            reject(new Error('Failed to load Google Translate'))
+          },
+          { once: true },
+        )
       }
       return
     }
@@ -117,12 +133,15 @@ export function ensureGoogleTranslateLoaded(): Promise<void> {
   return loadPromise
 }
 
+/**
+ * Switch to CN via Google Translate.
+ * Reload after setting cookie — same fast path as production server.
+ */
 export async function setGoogleTranslateLanguage(lang: LanguageCode) {
   if (typeof window === 'undefined') return
 
   if (lang === 'id') {
-    document.cookie = `${COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    document.cookie = `${COOKIE_NAME}=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    clearTranslateCookie()
     window.location.reload()
     return
   }
@@ -131,16 +150,14 @@ export async function setGoogleTranslateLanguage(lang: LanguageCode) {
 
   try {
     await ensureGoogleTranslateLoaded()
+    const select = document.querySelector<HTMLSelectElement>('.goog-te-combo')
+    if (select) {
+      select.value = lang
+      select.dispatchEvent(new Event('change'))
+      return
+    }
   } catch {
-    window.location.reload()
-    return
-  }
-
-  const select = document.querySelector<HTMLSelectElement>('.goog-te-combo')
-  if (select) {
-    select.value = lang
-    select.dispatchEvent(new Event('change'))
-    return
+    // fall through to reload
   }
 
   window.location.reload()
