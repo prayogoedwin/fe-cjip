@@ -19,6 +19,7 @@ export const API_V3 = {
 
   /** Auth */
   auth: {
+    register: '/v3/auth/register',
     login: '/v3/auth/login',
     me: '/v3/auth/me',
     logout: '/v3/auth/logout',
@@ -84,9 +85,45 @@ export const API_V3 = {
   /** Peta investasi */
   petaInvestasi: '/v3/peta-investasi',
 
-  /** Form */
+  /** Form publik */
   kepeminatan: '/v3/kepeminatan',
   sinida: {
     permohonan: '/v3/sinida/permohonan',
+  },
+
+  /** Panel perusahaan (auth:sanctum) */
+  perusahaan: {
+    dashboard: '/v3/perusahaan/dashboard',
+    profil: {
+      show: '/v3/perusahaan/profil',
+      personal: '/v3/perusahaan/profil/personal',
+      perusahaan: '/v3/perusahaan/profil/perusahaan',
+      avatar: '/v3/perusahaan/profil/avatar',
+      password: '/v3/perusahaan/profil/password',
+    },
+    kemitraan: {
+      produk: '/v3/perusahaan/kemitraan/produk',
+      produkSaya: '/v3/perusahaan/kemitraan/produk-saya',
+      produkShow: (slug: string) => `/v3/perusahaan/kemitraan/produk/${slug}`,
+      produkSayaUpdate: (slug: string) => `/v3/perusahaan/kemitraan/produk-saya/${slug}`,
+      minat: (slug: string) => `/v3/perusahaan/kemitraan/produk/${slug}/minat`,
+      minatMasuk: '/v3/perusahaan/kemitraan/minat-masuk',
+      minatKeluar: '/v3/perusahaan/kemitraan/minat-keluar',
+    },
+    kepeminatan: {
+      index: '/v3/perusahaan/kepeminatan',
+      meta: '/v3/perusahaan/kepeminatan/meta',
+      show: (id: number | string) => `/v3/perusahaan/kepeminatan/${id}`,
+    },
+    sinida: {
+      index: '/v3/perusahaan/sinida',
+      show: (id: number | string) => `/v3/perusahaan/sinida/${id}`,
+    },
+    jadwalPelatihan: '/v3/perusahaan/jadwal-pelatihan',
+    laporMikro: {
+      index: '/v3/perusahaan/lapor-mikro',
+      nib: '/v3/perusahaan/lapor-mikro/nib',
+      proyek: '/v3/perusahaan/lapor-mikro/proyek',
+    },
   },
 } as const

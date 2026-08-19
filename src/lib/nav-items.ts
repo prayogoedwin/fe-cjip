@@ -1,7 +1,9 @@
 import type { NavItem } from '@/types'
+import { getCjibfUrl } from '@/lib/site-urls'
 
 export interface NavbarLink extends NavItem {
   highlight?: boolean
+  external?: boolean
 }
 
 export const NAV_ITEMS: NavbarLink[] = [
@@ -27,5 +29,5 @@ export const NAV_ITEMS: NavbarLink[] = [
   },
   { label: 'Peta', href: '/peta-investasi' },
   { label: 'Lahan', href: '/lahan-siap-pakai' },
-  { label: 'CJIBF', href: '#', highlight: true },
+  { label: 'CJIBF', href: getCjibfUrl(), highlight: true, external: true },
 ]

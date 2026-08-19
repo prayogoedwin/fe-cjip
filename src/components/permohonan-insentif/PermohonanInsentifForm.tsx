@@ -1,14 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormField, FormSection } from '@/components/form/FormSection'
 import { inputClass } from '@/components/form/form-styles'
-import { submitSinida } from '@/lib/api'
-import { ApiError } from '@/lib/api/client'
-import { getAuthTokenFromDocument } from '@/lib/auth'
+import { ApiError, type ApiErrorBody } from '@/lib/api/client'
 
 const companyFields = [
   { name: 'nib', label: 'NIB', placeholder: '13 digit NIB', required: true },
@@ -73,38 +71,44 @@ function formatApiError(err: unknown): string {
 
 export function PermohonanInsentifForm() {
   const router = useRouter()
-  const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const token = getAuthTokenFromDocument()
-    if (!token) {
-      router.replace('/login?rdr=sinida')
-      return
-    }
-    setReady(true)
-  }, [router])
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
-
-    const token = getAuthTokenFromDocument()
-    if (!token) {
-      router.replace('/login?rdr=sinida')
-      return
-    }
 
     const form = e.currentTarget
     const formData = new FormData(form)
 
     setLoading(true)
     try {
-      const res = await submitSinida(formData, token)
-      setSuccessMessage(res.data.message || 'Permohonan insentif berhasil dikirim.')
+      const response = await fetch('/api/sinida/permohonan', {
+        method: 'POST',
+        body: formData,
+        headers: { Accept: 'application/json' },
+      })
+
+      const json = (await response.json().catch(() => null)) as
+        | {
+            success?: boolean
+            message?: string
+            errors?: Record<string, string[]>
+            data?: { message?: string }
+          }
+        | null
+
+      if (!response.ok) {
+        throw new ApiError(
+          json?.message ?? `Request gagal (${response.status})`,
+          response.status,
+          (json as ApiErrorBody | null) ?? null,
+        )
+      }
+
+      setSuccessMessage(json?.data?.message || 'Permohonan insentif berhasil dikirim.')
       setSuccess(true)
       form.reset()
     } catch (err) {
@@ -116,14 +120,6 @@ export function PermohonanInsentifForm() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-50 text-sm text-neutral-500">
-        Memeriksa sesi...
-      </div>
-    )
   }
 
   return (

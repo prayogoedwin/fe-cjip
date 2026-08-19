@@ -210,6 +210,21 @@ export async function apiPostForm<T>(
   return apiFetch<T>(path, { ...options, method: 'POST', formData })
 }
 
+export async function apiPut<T>(
+  path: string,
+  body?: unknown,
+  options: Omit<ApiFetchOptions, 'method' | 'body'> = {},
+): Promise<ApiSuccess<T>> {
+  return apiFetch<T>(path, { ...options, method: 'PUT', body })
+}
+
+export async function apiDelete<T>(
+  path: string,
+  options: Omit<ApiFetchOptions, 'method' | 'body' | 'formData'> = {},
+): Promise<ApiSuccess<T>> {
+  return apiFetch<T>(path, { ...options, method: 'DELETE' })
+}
+
 /** Soft wrapper: returns null on failure instead of throwing. */
 export async function apiGetSafe<T>(
   path: string,

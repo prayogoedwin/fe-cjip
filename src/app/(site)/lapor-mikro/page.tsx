@@ -88,9 +88,16 @@ export default function LaporMikroPage() {
           </div>
 
           <div className="rounded-xl border border-brand-100 bg-white p-8 text-center">
-            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-brand-500" />
             <h3 className="mb-2 font-semibold text-brand-900">Rekapitulasi Laporan</h3>
-            <p className="text-sm text-neutral-500">Grafik rekapitulasi akan dimuat dari server</p>
+            <p className="mx-auto mb-5 max-w-lg text-sm text-neutral-600">
+              Grafik rekapitulasi SIMIKE hanya tersedia setelah login sebagai perusahaan terdaftar.
+            </p>
+            <Link
+              href="/login?rdr=perusahaan"
+              className="inline-block rounded-lg border border-brand-500 px-6 py-2.5 text-sm font-semibold text-brand-600 transition hover:bg-brand-50"
+            >
+              Login untuk Melihat Rekap
+            </Link>
           </div>
         </Container>
       </section>
