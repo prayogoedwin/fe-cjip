@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { buildSecurityHeaders } from './src/lib/security-headers'
 
 const apiHostname = (() => {
   try {
@@ -19,6 +20,14 @@ const isLocalApiHost =
 const nextConfig: NextConfig = {
   // Dev: allow opening app via http://127.0.0.1:3000 (not only localhost)
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: buildSecurityHeaders(),
+      },
+    ]
+  },
   async rewrites() {
     const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') || 'http://127.0.0.1:8000'
     return [
@@ -40,13 +49,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'cjip.jatengprov.go.id', pathname: '/**' },
       { protocol: 'http', hostname: 'cjip.jatengprov.go.id', pathname: '/**' },
-      { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
       { protocol: 'https', hostname: 'jatengprov.go.id', pathname: '/**' },
       { protocol: 'https', hostname: 'dpmptsp.jatengprov.go.id', pathname: '/**' },
       { protocol: 'https', hostname: 'jateng.bps.go.id', pathname: '/**' },
       { protocol: 'https', hostname: 'www.kerisjateng.id', pathname: '/**' },
       { protocol: 'https', hostname: 'bursakerja.jatengprov.go.id', pathname: '/**' },
-      { protocol: 'https', hostname: 'via.placeholder.com', pathname: '/**' },
       { protocol: 'http', hostname: 'localhost', pathname: '/**' },
       { protocol: 'http', hostname: '127.0.0.1', pathname: '/**' },
       ...(apiHostname

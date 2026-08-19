@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AUTH_COOKIE } from '@/lib/auth'
+import { AUTH_TOKEN_COOKIE } from '@/lib/auth'
 
-export function proxy(request: NextRequest) {
-  const isAuthenticated = request.cookies.get(AUTH_COOKIE)?.value === '1'
+export default function proxy(request: NextRequest) {
+  const token = request.cookies.get(AUTH_TOKEN_COOKIE)?.value?.trim()
+  const isAuthenticated = Boolean(token)
 
   if (!isAuthenticated) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('rdr', 'sinida')
+    const path = request.nextUrl.pathname
+    if (path.startsWith('/perusahaan')) {
+      loginUrl.searchParams.set('rdr', 'perusahaan')
+    } else {
+      loginUrl.searchParams.set('rdr', 'sinida')
+    }
     return NextResponse.redirect(loginUrl)
   }
 
@@ -15,5 +21,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/permohonan-insentif/:path*'],
+  matcher: ['/perusahaan/:path*', '/permohonan-insentif/:path*'],
 }

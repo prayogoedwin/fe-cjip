@@ -7,6 +7,9 @@ import { KawasanGrid } from '@/components/kawasan/KawasanGrid'
 import { createPageMetadata } from '@/lib/page-metadata'
 import { fetchKawasanList } from '@/lib/api'
 
+const KEK_HERO_IMAGE =
+  'https://cjip.jatengprov.go.id/storage/slider/Abu%20Muslih%20Assulkhani/2026/01KH8E28EF5CPKRSNDZAY5YYXZ.jpg'
+
 export const metadata: Metadata = createPageMetadata(
   'Kawasan Industri',
   'Temukan kawasan industri strategis di Jawa Tengah — KEK, BUMN, dan swasta',
@@ -58,7 +61,7 @@ export default async function KawasanIndustriPage() {
             </div>
             <div className="relative min-h-[200px] md:min-h-[260px]">
               <SafeImage
-                src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80"
+                src={KEK_HERO_IMAGE}
                 alt="Kawasan Ekonomi Khusus Jawa Tengah"
                 fill
                 className="object-cover"

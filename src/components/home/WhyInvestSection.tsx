@@ -1,6 +1,7 @@
 import { Container } from '@/components/ui/Container'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { resolveImageUrl } from '@/lib/images'
 
 const DEFAULT_IMAGE =
@@ -50,9 +51,9 @@ export function WhyInvestSection({ opening }: WhyInvestSectionProps) {
           <div>
             <SectionLabel>Mengapa Jawa Tengah?</SectionLabel>
             <h2 className="mb-4 text-[clamp(1.4rem,3vw,2rem)] font-bold text-brand-900">{title}</h2>
-            <div
+            <SafeHtml
+              html={descHtml}
               className="text-[0.95rem] leading-relaxed text-content-muted [&_p]:mb-4 [&_p:last-child]:mb-0"
-              dangerouslySetInnerHTML={{ __html: descHtml }}
             />
             <div className="mt-6 flex flex-wrap gap-4">
               {[

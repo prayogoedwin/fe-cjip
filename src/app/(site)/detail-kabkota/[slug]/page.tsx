@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { Container } from '@/components/ui/Container'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { createPageMetadata } from '@/lib/page-metadata'
 import { fetchProfilKabkota } from '@/lib/api'
 import { resolveImageUrl } from '@/lib/images'
@@ -79,9 +80,9 @@ export default async function DetailKabkotaPage({ params }: PageProps) {
             <div>
               <h2 className="mb-3 text-lg font-bold text-brand-900">Latar Belakang</h2>
               {data.desc ? (
-                <div
+                <SafeHtml
+                  html={data.desc}
                   className="text-[0.95rem] leading-relaxed text-neutral-600 [&_p]:mb-3 [&_p:last-child]:mb-0"
-                  dangerouslySetInnerHTML={{ __html: data.desc }}
                 />
               ) : (
                 <p className="text-neutral-400">Data latar belakang kosong</p>

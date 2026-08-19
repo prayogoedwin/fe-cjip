@@ -1,4 +1,5 @@
 import { SectionLabel } from '@/components/ui/SectionLabel'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 
 interface SectionHeaderProps {
   label?: string
@@ -11,9 +12,12 @@ export function SectionHeader({ label, title, description }: SectionHeaderProps)
     <div className="mb-10 text-center">
       {label && <SectionLabel>{label}</SectionLabel>}
       <h2 className="text-[clamp(1.4rem,3vw,2rem)] font-bold text-brand-900">{title}</h2>
-      {description && (
-        <p className="mx-auto mt-2.5 max-w-[620px] text-[0.95rem] text-content-muted">{description}</p>
-      )}
+      {description ? (
+        <SafeHtml
+          html={description}
+          className="mx-auto mt-2.5 max-w-[620px] text-[0.95rem] leading-relaxed text-content-muted [&_p]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
+        />
+      ) : null}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { SafeImage } from '@/components/ui/SafeImage'
 import type { KawasanIndustri } from '@/types'
 
@@ -74,11 +75,10 @@ export function KawasanDetailTabs({ kawasan }: KawasanDetailTabsProps) {
                     {item.title}
                   </h4>
                 </div>
-                <div
+                <SafeHtml
+                  html={item.content}
+                  fallback="Informasi belum tersedia."
                   className="pl-4 text-sm leading-relaxed text-neutral-600 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_br]:block [&_strong]:font-semibold"
-                  dangerouslySetInnerHTML={{
-                    __html: item.content || 'Informasi belum tersedia.',
-                  }}
                 />
               </div>
             ))}

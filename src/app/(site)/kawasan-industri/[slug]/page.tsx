@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Container } from '@/components/ui/Container'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { KawasanDetailTabs } from '@/components/kawasan/KawasanDetailTabs'
 import { KawasanShareBar } from '@/components/kawasan/KawasanShareBar'
 import { fetchKawasanBySlug, fetchAllKawasanSlugs } from '@/lib/api'
@@ -132,23 +133,20 @@ export default async function KawasanDetailPage({ params }: PageProps) {
         <Container>
           <div className="mx-auto max-w-5xl space-y-6">
             <ProfileSection title="Profil Kawasan Industri">
-              <div
+              <SafeHtml
+                html={
+                  kawasan.profilKawasan ??
+                  kawasan.deskripsi ??
+                  'Informasi profil kawasan belum tersedia.'
+                }
                 className="[&_p]:mb-3 [&_p:last-child]:mb-0 [&_br]:block [&_strong]:font-semibold [&_strong]:text-brand-900"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    kawasan.profilKawasan ??
-                    kawasan.deskripsi ??
-                    'Informasi profil kawasan belum tersedia.',
-                }}
               />
             </ProfileSection>
 
             <ProfileSection title="Profil Perusahaan">
-              <div
+              <SafeHtml
+                html={kawasan.profilPerusahaan ?? 'Informasi profil perusahaan belum tersedia.'}
                 className="[&_p]:mb-3 [&_p:last-child]:mb-0 [&_br]:block [&_strong]:font-semibold [&_strong]:text-brand-900"
-                dangerouslySetInnerHTML={{
-                  __html: kawasan.profilPerusahaan ?? 'Informasi profil perusahaan belum tersedia.',
-                }}
               />
             </ProfileSection>
 

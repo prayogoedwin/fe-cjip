@@ -6,9 +6,8 @@ import { Turnstile } from '@marsidev/react-turnstile'
 import { LOGO_WHITE } from '@/lib/assets'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { loginApi } from '@/lib/api'
-import { ApiError } from '@/lib/api/client'
-import { getRedirectAfterLogin, setAuthCookie } from '@/lib/auth'
+import { ApiError, type ApiErrorBody } from '@/lib/api/client'
+import { getRedirectAfterLogin } from '@/lib/auth'
 
 const TURNSTILE_SITE_KEY =
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA'
@@ -54,12 +53,31 @@ export function LoginForm({ rdr }: LoginFormProps) {
     setLoading(true)
 
     try {
-      const res = await loginApi({
-        email: email.trim(),
-        password,
-        turnstile_token: turnstileToken,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          turnstile_token: turnstileToken,
+        }),
       })
-      setAuthCookie(res.data.token)
+
+      const json = (await response.json().catch(() => null)) as
+        | { success?: boolean; message?: string; errors?: Record<string, string[]> }
+        | null
+
+      if (!response.ok) {
+        throw new ApiError(
+          json?.message ?? `Request gagal (${response.status})`,
+          response.status,
+          (json as ApiErrorBody | null) ?? null,
+        )
+      }
+
       router.push(getRedirectAfterLogin(rdr))
     } catch (err) {
       setError(formatApiError(err))
@@ -213,9 +231,12 @@ export function LoginForm({ rdr }: LoginFormProps) {
           <hr className="my-5 border-brand-100" />
           <p className="text-center text-sm text-neutral-500">
             Belum punya akun?{' '}
-            <a href="#" className="font-semibold text-brand-500">
+            <Link
+              href={isSinidaLogin ? '/register?rdr=sinida' : '/register'}
+              className="font-semibold text-brand-500 transition duration-300 hover:text-brand-600"
+            >
               Daftar sekarang
-            </a>
+            </Link>
           </p>
           <p className="mt-2 text-center text-sm">
             <Link href="/" className="text-brand-500 transition duration-300 hover:text-brand-600">

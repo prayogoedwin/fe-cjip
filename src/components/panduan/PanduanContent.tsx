@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { PageHero } from '@/components/ui/PageHero'
 import { Container } from '@/components/ui/Container'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 const defaultFaqNav = [
   { id: 'prosedur', icon: '📋', label: 'Prosedur Investasi' },
   { id: 'lisensi', icon: '📄', label: 'Mendapatkan Lisensi' },
@@ -55,9 +56,9 @@ function Accordion({ items }: { items: { q: string; a: string }[] }) {
             <span className="text-brand-500">{openIndex === index ? '−' : '+'}</span>
           </button>
           {openIndex === index && (
-            <div
+            <SafeHtml
+              html={item.a}
               className="prose prose-neutral prose-sm max-w-none border-t border-brand-50 px-5 py-4 text-sm leading-relaxed text-neutral-600 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0"
-              dangerouslySetInnerHTML={{ __html: item.a }}
             />
           )}
         </div>

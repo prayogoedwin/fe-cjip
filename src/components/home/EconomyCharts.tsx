@@ -15,6 +15,7 @@ import {
 import { Bar, Line } from 'react-chartjs-2'
 import { Container } from '@/components/ui/Container'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import type { ApiBerandaPayload } from '@/lib/api'
 
 ChartJS.register(
@@ -138,9 +139,9 @@ export function EconomyCharts({ grafik }: { grafik?: ApiBerandaPayload['grafik']
         <div className="mb-14 grid items-center gap-10 lg:grid-cols-2">
           <div>
             <h3 className="mb-3 text-xl font-bold text-brand-900">{peTitle}</h3>
-            <div
+            <SafeHtml
+              html={peDesc}
               className="text-[0.88rem] leading-relaxed text-content-muted [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
-              dangerouslySetInnerHTML={{ __html: peDesc }}
             />
           </div>
           <div className="rounded-2xl border border-cjip-border bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.05)]">
@@ -171,9 +172,9 @@ export function EconomyCharts({ grafik }: { grafik?: ApiBerandaPayload['grafik']
           </div>
           <div className="lg:order-2">
             <h3 className="mb-3 text-xl font-bold text-brand-900">{piTitle}</h3>
-            <div
+            <SafeHtml
+              html={piDesc}
               className="text-[0.88rem] leading-relaxed text-content-muted [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_strong]:text-brand-900"
-              dangerouslySetInnerHTML={{ __html: piDesc }}
             />
           </div>
         </div>

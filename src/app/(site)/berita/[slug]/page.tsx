@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Container } from '@/components/ui/Container'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { createPageMetadata } from '@/lib/page-metadata'
 import { fetchBeritaBySlug } from '@/lib/api'
 
@@ -74,11 +75,9 @@ export default async function BeritaDetailPage({ params }: PageProps) {
       <section className="px-6 pb-16">
         <Container>
           <article className="mx-auto max-w-3xl">
-            <div
+            <SafeHtml
+              html={'body' in berita && berita.body ? berita.body : berita.excerpt}
               className="prose prose-neutral max-w-none text-[0.95rem] leading-relaxed text-neutral-700"
-              dangerouslySetInnerHTML={{
-                __html: 'body' in berita && berita.body ? berita.body : berita.excerpt,
-              }}
             />
 
             {'images' in berita && berita.images && berita.images.length > 1 ? (

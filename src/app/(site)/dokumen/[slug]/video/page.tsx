@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Container } from '@/components/ui/Container'
+import { SafeHtml } from '@/components/ui/SafeHtml'
 import { createPageMetadata } from '@/lib/page-metadata'
 import { fetchDokumenBySlug } from '@/lib/api'
 
@@ -57,9 +58,9 @@ export default async function DokumenVideoPage({ params }: PageProps) {
         {item.description ? (
           <div className="mt-8 rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
             <h2 className="mb-3 text-sm font-semibold tracking-wider text-brand-900 uppercase">Deskripsi</h2>
-            <div
+            <SafeHtml
+              html={item.description}
               className="prose prose-neutral prose-sm max-w-none text-neutral-600"
-              dangerouslySetInnerHTML={{ __html: item.description }}
             />
           </div>
         ) : null}
